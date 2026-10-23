@@ -15,7 +15,7 @@
 | **Organisation** | [vtu-qiskit-fall-fest-2026](https://github.com/vtu-qiskit-fall-fest-2026) |
 | **Event** | VTU-QFF Hackathon — VTU-Qiskit Fall Fest 2026 |
 
-**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](./submission/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
+**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Demo video (24 s)](./docs/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](./submission/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
 
 ---
 
@@ -566,6 +566,7 @@ git pull --rebase
 - [x] Project runs from a clean clone
 - [x] Latest code committed to `main`
 - [x] Live demo and 10-slide submission deck included
+- [x] 24-second demo video published (every frame is the real product, captured from the live deployment)
 - [ ] Short project summary submitted on the hackathon portal
 
 ---
@@ -585,6 +586,7 @@ git pull --rebase
 | Google Cirq | <https://quantumai.google/cirq> |
 | GitHub Documentation | <https://docs.github.com/> |
 | Live demo | <https://chinmayrerc.github.io/q-matrix/> |
+| Demo video (24 s) | [`docs/q-matrix-demo.mp4`](./docs/q-matrix-demo.mp4) · poster [`docs/q-matrix-demo-poster.jpg`](./docs/q-matrix-demo-poster.jpg) |
 | API health | <https://q-matrix.onrender.com/api/health> |
 | Submission deck | [`submission/VTU-QFF-HC-0024.pptx`](./submission/VTU-QFF-HC-0024.pptx) |
 
