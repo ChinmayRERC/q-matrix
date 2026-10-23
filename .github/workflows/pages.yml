@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   build:
+    # The public mirror lives in the VTU organisation; only the personal
+    # repository has a Pages site enabled. Skip cleanly on the mirror instead
+    # of failing every push behind a red X.
+    if: github.repository == 'ChinmayRERC/q-matrix'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +39,7 @@ jobs:
         with:
           path: dist
   deploy:
+    if: github.repository == 'ChinmayRERC/q-matrix'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
