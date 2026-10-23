@@ -257,12 +257,9 @@ export const describeGate = (gate: Gate): string => {
   return `${prefix}${spec.name}${angles} q${gate.qubits[0]}`
 }
 
-/** Format a basis-state index as a ket string, e.g. index 5 (3 qubits) -> |101⟩. */
-export const ketLabel = (index: number, numQubits: number): string => {
-  const bits = index.toString(2).padStart(numQubits, '0')
-  return `|${bits}⟩`
-}
+/** Format a basis-state index as a little-endian ket, q0 leftmost (index 1 -> |10⟩). */
+export const ketLabel = (index: number, numQubits: number): string => `|${bitString(index, numQubits)}⟩`
 
-/** Bit string of a state index, MSB first (q_{n-1} … q_0). */
+/** Bit string of a state index, little-endian: q0 is the leftmost character. */
 export const bitString = (index: number, numQubits: number): string =>
   index.toString(2).padStart(numQubits, '0').split('').reverse().join('')

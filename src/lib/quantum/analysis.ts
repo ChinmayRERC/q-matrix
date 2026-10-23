@@ -1,4 +1,4 @@
-import { cabs2, cconj, cmul, cadd, csub, cscale, type Complex } from './core'
+import { cabs, cabs2, cconj, cmul, cadd, csub, cscale, type Complex } from './core'
 import { bitString } from './circuit'
 
 /** Shannon entropy (bits) of a probability distribution. */
@@ -313,6 +313,92 @@ export function concurrence(state: Complex[]): number {
   return Math.max(0, Math.min(1, 2 * Math.hypot(det.re, det.im)))
 }
 
+/**
+ * Concurrence of a two-qubit mixed state (Wootters' spin-flip formula).
+ *
+ * The pure-state shortcut is not valid for noisy runs: a diagonal mixture can
+ * still be classically correlated while a naive off-diagonal test reports 0.
+ * We build the Hermitian matrix sqrt(rho) * (Y⊗Y) rho* (Y⊗Y) * sqrt(rho),
+ * whose eigenvalues are the squared Wootters roots, then apply
+ * C = max(0, sqrt(l1) - sqrt(l2) - sqrt(l3) - sqrt(l4)).
+ */
+export function concurrenceDensity(rho: Complex[], n: number): number {
+  if (n !== 2 || rho.length !== 16) return 0
+  const flip: Complex[] = [
+    { re: 0, im: 0 }, { re: 0, im: 0 }, { re: 0, im: 0 }, { re: -1, im: 0 },
+    { re: 0, im: 0 }, { re: 0, im: 0 }, { re: 1, im: 0 }, { re: 0, im: 0 },
+    { re: 0, im: 0 }, { re: 1, im: 0 }, { re: 0, im: 0 }, { re: 0, im: 0 },
+    { re: -1, im: 0 }, { re: 0, im: 0 }, { re: 0, im: 0 }, { re: 0, im: 0 },
+  ]
+  const multiply = (a: Complex[], b: Complex[]): Complex[] => {
+    const out = new Array<Complex>(16).fill({ re: 0, im: 0 })
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        let acc: Complex = { re: 0, im: 0 }
+        for (let k = 0; k < 4; k++) acc = cadd(acc, cmul(a[i * 4 + k], b[k * 4 + j]))
+        out[i * 4 + j] = acc
+      }
+    }
+    return out
+  }
+  const conjugate = rho.map(cconj)
+  const spinFlipped = multiply(multiply(flip, conjugate), flip)
+  const root = matrixSquareRoot(rho, 4)
+  const wootters = multiply(multiply(root, spinFlipped), root)
+  const woottersMatrix = Array.from({ length: 4 }, (_, i) => wootters.slice(i * 4, i * 4 + 4))
+  const roots = hermitianEigenvalues(woottersMatrix)
+    .map((value) => Math.sqrt(Math.max(0, value)))
+    .sort((a, b) => b - a)
+  if (roots.length < 4) return 0
+  const c = roots[0] - roots[1] - roots[2] - roots[3]
+  return Math.max(0, Math.min(1, c))
+}
+
+/** Complex matrix inverse via Gauss-Jordan with partial pivoting. */
+function invertMatrix(matrix: Complex[], n: number): Complex[] {
+  const aug = Array.from({ length: n }, (_, i) => [
+    ...matrix.slice(i * n, i * n + n).map((c) => ({ ...c })),
+    ...Array.from({ length: n }, (_, j) => ({ re: i === j ? 1 : 0, im: 0 })),
+  ])
+  for (let col = 0; col < n; col++) {
+    let pivot = col
+    for (let row = col + 1; row < n; row++) {
+      if (cabs(aug[row][col]) > cabs(aug[pivot][col])) pivot = row
+    }
+    if (cabs(aug[pivot][col]) < 1e-14) return new Array<Complex>(n * n).fill({ re: 0, im: 0 })
+    if (pivot !== col) [aug[col], aug[pivot]] = [aug[pivot], aug[col]]
+    const scale = aug[col][col]
+    for (let j = 0; j < 2 * n; j++) aug[col][j] = cdiv(aug[col][j], scale)
+    for (let row = 0; row < n; row++) {
+      if (row === col) continue
+      const factor = aug[row][col]
+      for (let j = 0; j < 2 * n; j++) {
+        aug[row][j] = csub(aug[row][j], cmul(factor, aug[col][j]))
+      }
+    }
+  }
+  return aug.flatMap((row) => row.slice(n))
+}
+
+/**
+ * Matrix square root by Denman-Beavers iteration. A tiny diagonal shift keeps
+ * the inverse well-defined for pure states, where rho is rank-deficient.
+ */
+function matrixSquareRoot(matrix: Complex[], n: number): Complex[] {
+  const eps = 1e-10
+  let y = matrix.map((c, i) => ({ re: c.re + (i % (n + 1) === 0 ? eps : 0), im: c.im }))
+  let z = Array.from({ length: n * n }, (_, i) => ({ re: i % (n + 1) === 0 ? 1 : 0, im: 0 }))
+  for (let iteration = 0; iteration < 40; iteration++) {
+    const invY = invertMatrix(y, n)
+    const invZ = invertMatrix(z, n)
+    const nextY = y.map((c, i) => cscale(cadd(c, invZ[i]), 0.5))
+    const nextZ = z.map((c, i) => cscale(cadd(c, invY[i]), 0.5))
+    y = nextY
+    z = nextZ
+  }
+  return y
+}
+
 /** Fidelity between two pure statevectors: |<psi|phi>|^2. */
 export function fidelity(a: Complex[], b: Complex[]): number {
   let acc: Complex = { re: 0, im: 0 }
@@ -459,7 +545,7 @@ export function summarizeDensity(rho: Complex[], n: number): StateSummary {
     purity: pur,
     entangled: maxEnt > 1e-6,
     maxEntanglementEntropy: maxEnt,
-    concurrence: 0,
+    concurrence: concurrenceDensity(rho, n),
     mixed: true,
     description,
   }

@@ -636,41 +636,20 @@ function Toggle({
   onChange: (v: boolean) => void
 }) {
   return (
-    <label className="row gap-12" style={{ cursor: 'pointer', alignItems: 'flex-start' }}>
-      <span
-        onClick={(e) => {
-          e.preventDefault()
-          onChange(!on)
-        }}
-        style={{
-          width: 34,
-          height: 20,
-          borderRadius: 99,
-          flex: 'none',
-          marginTop: 2,
-          background: on ? 'var(--violet)' : 'rgba(255,255,255,.12)',
-          position: 'relative',
-          transition: 'background .2s',
-        }}
-      >
-        <span
-          style={{
-            position: 'absolute',
-            top: 2,
-            left: on ? 16 : 2,
-            width: 16,
-            height: 16,
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'left .2s',
-          }}
-        />
+    <label className="toggle-row">
+      <input
+        type="checkbox"
+        className="toggle-input"
+        checked={on}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span className={`toggle-track ${on ? 'on' : ''}`} aria-hidden="true">
+        <span className="toggle-knob" />
       </span>
       <span className="grow">
         <span className="small" style={{ display: 'block', fontWeight: 600 }}>{label}</span>
         <span className="tiny dim" style={{ display: 'block', lineHeight: 1.45 }}>{detail}</span>
       </span>
-      <input type="checkbox" className="sr-only" checked={on} onChange={(e) => onChange(e.target.checked)} style={{ display: 'none' }} />
     </label>
   )
 }

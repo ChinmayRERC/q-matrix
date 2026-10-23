@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { addGate, emptyCircuit, type Circuit } from './quantum/circuit'
 import { CHALLENGES, challengeById, hintFor } from './challenges'
+import { templateById } from './quantum/templates'
 
 const build = (n: number, steps: Array<[Parameters<typeof addGate>[1], number[], number?, number[]?]>) => {
   let c = emptyCircuit(n)
@@ -41,6 +42,34 @@ describe('challenge catalogue', () => {
       expect(result.hint.length).toBeGreaterThan(0)
       expect(result.score).toBeGreaterThanOrEqual(0)
       expect(result.score).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('never ships a scaffold that already solves its own challenge', () => {
+    for (const challenge of CHALLENGES) {
+      const starter = challenge.scaffold()
+      expect({ id: challenge.id, qubits: starter.numQubits }).toEqual({
+        id: challenge.id,
+        qubits: challenge.qubits,
+      })
+      const result = challenge.grade(starter)
+      expect({ id: challenge.id, passed: result.passed }).toEqual({ id: challenge.id, passed: false })
+    }
+  })
+
+  it('does not accept the default Bell circuit for unrelated challenges', () => {
+    const bell = build(2, [
+      ['H', [0], 0],
+      ['CNOT', [0, 1], 1],
+    ])
+    for (const challenge of CHALLENGES) {
+      // The no-clone lesson intentionally produces a Bell pair, and bell-pair
+      // is the Bell challenge itself.
+      if (challenge.id === 'bell-pair' || challenge.id === 'no-clone') continue
+      expect({ id: challenge.id, passed: challenge.grade(bell).passed }).toEqual({
+        id: challenge.id,
+        passed: false,
+      })
     }
   })
 })
@@ -129,19 +158,38 @@ describe('advanced challenges', () => {
     expect(result.passed).toBe(true)
   })
 
-  it('QFT on |000> gives a flat distribution', () => {
-    const half = Math.PI / 2
-    const quarter = Math.PI / 4
-    const result = grade('qft-uniform', build(3, [
-      ['H', [2], 0],
-      ['CRZ', [2, 1], 1, [half]],
-      ['H', [1], 2],
-      ['CRZ', [2, 0], 3, [quarter]],
-      ['CRZ', [1, 0], 4, [half]],
-      ['H', [0], 5],
-      ['SWAP', [2, 0], 6],
-    ]))
+  it('QFT on |001> matches the exact phase ramp', () => {
+    // The challenge scaffold prepares |001>; append the exact QFT template.
+    let circuit = build(3, [['X', [0], 0]])
+    const qft = templateById('qft')!.build()
+    for (const gate of qft.gates) {
+      circuit = addGate(circuit, gate.kind, gate.qubits, gate.column + 1, gate.params, gate.condition)
+    }
+    const result = grade('qft-uniform', circuit)
     expect(result.passed).toBe(true)
+  })
+
+  it('QFT rejects a flat H-only superposition', () => {
+    const result = grade('qft-uniform', build(3, [
+      ['X', [0], 0],
+      ['H', [0], 1],
+      ['H', [1], 2],
+      ['H', [2], 3],
+    ]))
+    expect(result.passed).toBe(false)
+  })
+
+  it('Grover rejects a trivial X-only preparation of |11>', () => {
+    const result = grade('grover-hit', build(2, [
+      ['X', [0], 0],
+      ['X', [1], 0],
+    ]))
+    expect(result.passed).toBe(false)
+  })
+
+  it('Deutsch-Jozsa rejects a non-interfering X-only circuit', () => {
+    const result = grade('deutsch-jozsa', build(3, [['X', [0], 0]]))
+    expect(result.passed).toBe(false)
   })
 
   it('teleportation: unconditional corrections fail the feed-forward check', () => {

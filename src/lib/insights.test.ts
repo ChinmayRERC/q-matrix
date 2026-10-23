@@ -143,3 +143,32 @@ describe('identity helpers', () => {
     expect(inventory.every((g) => g.name.length > 0)).toBe(true)
   })
 })
+
+
+describe('optimizer and measurement analysis', () => {
+  it('preserves parallel columns when compacting after a cancellation', () => {
+    let c = emptyCircuit(2)
+    c = addGate(c, 'H', [0], 0)
+    c = addGate(c, 'H', [0], 1)
+    c = addGate(c, 'X', [1], 0)
+    const { circuit } = optimizeCircuit(c)
+    expect(circuit.gates).toHaveLength(1)
+    expect(circuit.gates[0].column).toBe(0)
+  })
+
+  it('does not flag classically controlled feed-forward as an error', () => {
+    let c = emptyCircuit(2)
+    c = addGate(c, 'H', [0], 0)
+    c = addGate(c, 'M', [0], 1)
+    c = addGate(c, 'X', [1], 2, undefined, { qubit: 0, value: 1 })
+    expect(analyzeCircuit(c).filter((i) => i.level === 'error')).toHaveLength(0)
+  })
+
+  it('still flags an unconditional gate on a measured qubit', () => {
+    let c = emptyCircuit(2)
+    c = addGate(c, 'H', [0], 0)
+    c = addGate(c, 'M', [0], 1)
+    c = addGate(c, 'X', [0], 2)
+    expect(analyzeCircuit(c).find((i) => i.id === 'after-measure')).toBeDefined()
+  })
+})

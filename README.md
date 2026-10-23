@@ -6,6 +6,7 @@ Q-matrix turns quantum computing from a wall of algebra into a guided lab. Learn
 
 - **Live demo:** <https://chinmayrerc.github.io/q-matrix/>
 - **Repository:** <https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix>
+- **Submission deck:** [`submission/VTU-QFF-HC-0024.pptx`](./submission/VTU-QFF-HC-0024.pptx) (10-slide organiser template)
 - **Team:** VTU-QFF-HC-0024 — Chinmay R ([@ChinmayRERC](https://github.com/ChinmayRERC)), M Naveen ([@Navenmuchetty-67](https://github.com/Navenmuchetty-67)), Thulasi Ram M ([@Ram0528](https://github.com/Ram0528))
 - **License:** MIT
 
@@ -39,7 +40,7 @@ Q-matrix turns quantum computing from a wall of algebra into a guided lab. Learn
 - Live amplitudes, probabilities, histogram, Q-sphere and Bloch views
 - OpenQASM 2.0 round-trip plus Qiskit, Cirq and PennyLane code export
 - Ideal and noisy simulation (light / moderate / heavy presets)
-- 12 verified circuit templates, including Bell, GHZ, QFT, Grover, teleportation and phase estimation
+- 13 verified circuit templates, including Bell, GHZ, QFT, Grover, teleportation and phase estimation
 
 **Play**
 - XP curve, levels, daily streaks, 12 badges, daily and weekly quests
@@ -93,7 +94,7 @@ The browser engine is the fast path. The NumPy service is deliberately an *indep
 
 ### Qubit ordering
 
-Little-endian throughout, matching Qiskit: qubit 0 is the least-significant bit. The Bell state occupies statevector indices 0 and 3. Display strings are MSB-first, so a three-qubit `|100⟩` means qubit 0 is 1.
+Little-endian throughout, matching Qiskit: qubit 0 is the least-significant bit. The Bell state occupies statevector indices 0 and 3. Display strings are little-endian with q0 leftmost, so a three-qubit `|100⟩` means qubit 0 is 1 and the histogram key `100` is the same basis state.
 
 ### Mastery model
 
@@ -149,16 +150,20 @@ Without any key the API returns the deterministic fallback, so demos never break
 ## Tests and verification
 
 ```bash
-npm test                          # 106 unit tests across 6 files
+npx vitest run                    # 120 unit tests across 6 files
 npx tsc -b                        # type-check
 npm run build                     # production build
 python3 -m pytest apps/api -q     # 12 API tests
 python3 scripts/verify-templates.py  # 28/28 NumPy oracle checks
+# Qiskit 2.5.2 + Aer 0.18.0 reference suite
+.venv-qiskit/bin/python -m pytest qiskit_ref -q   # 15 tests
+
+Total: **147 automated checks** (120 + 12 + 15).
 ```
 
-The browser engine is cross-checked against the NumPy implementation for all deterministic templates, matching to ≤ 1.3e-15 max absolute amplitude difference. Concurrence uses the closed form `C = 2|ψ₀ψ₃ − ψ₁ψ₂|`, validated against Wootters' formula to 2.3e-8.
+The browser engine is cross-checked against the NumPy implementation for all deterministic templates, matching to ≤ 1.3e-15 max absolute amplitude difference. Pure-state concurrence uses the closed form `C = 2|ψ₀ψ₃ − ψ₁ψ₂|`; mixed and noisy density matrices use Wootters' spin-flip formula. Both are checked against independent oracles.
 
-The initial route ships ~111 kB gzipped; three.js and the workbench load on demand.
+The initial route ships ~112 kB gzipped; three.js and the workbench load on demand.
 
 ---
 
@@ -209,6 +214,16 @@ python -m qiskit_ref.algorithms     # run the demo
 Covered modules: Bell/GHZ preparation, Deutsch–Jozsa, Bernstein–Vazirani, Grover, QFT and inverse QFT (verified against `QFTGate` to 1e-12), phase estimation, teleportation with `if_test` feed-forward, and a noise-aware Bell experiment using Aer. See [`qiskit_ref/README.md`](./qiskit_ref/README.md) for conventions and expected output.
 
 ---
+
+## Submission deck
+
+The organisers' 10-slide template is filled in [`submission/VTU-QFF-HC-0024.pptx`](./submission/VTU-QFF-HC-0024.pptx). The circuit and results figures are generated from Qiskit/Aer by [`submission/build_deck.py`](./submission/build_deck.py). Rebuild the deck with:
+
+```bash
+python3 submission/build_deck.py
+```
+
+The deck uses the live circuit/results images in `submission/assets/`, fills every template field, and includes the public repo, live demo and API links on the closing slide.
 
 ## Known limitations
 

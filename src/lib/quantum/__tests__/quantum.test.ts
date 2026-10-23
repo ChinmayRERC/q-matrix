@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { addGate, emptyCircuit, validateCircuit, type Circuit } from '../circuit'
+import { addGate, bitString, emptyCircuit, ketLabel, validateCircuit, type Circuit } from '../circuit'
 import { simulate, NOISE_PRESETS, marginalProbabilities } from '../simulator'
-import { parseQasm, toQasm } from '../qasm'
-import { concurrence, entanglementEntropy, fidelity, summarizeState } from '../analysis'
+import { parseQasm, toCirqPython, toPennyLanePython, toQasm, toQiskitPython } from '../qasm'
+import { concurrence, entanglementEntropy, fidelity, summarizeDensity, summarizeState } from '../analysis'
 import { TEMPLATES, templateById } from '../templates'
 
 // All indices are little-endian: qubit 0 is the least significant bit.
@@ -313,6 +313,28 @@ describe('QASM round-trip', () => {
     expect(circuit.gates.map((g) => g.kind)).toEqual(['RY', 'RZ', 'U'])
   })
 
+  it('maps multiple quantum register declarations onto distinct qubits', () => {
+    const src = [
+      'OPENQASM 2.0;',
+      'include "qelib1.inc";',
+      'qreg q[2];',
+      'qreg r[2];',
+      'h q[0];',
+      'x r[0];',
+      'measure r -> c;',
+    ].join('\n')
+    const { circuit, errors, warnings } = parseQasm(src)
+    expect(errors).toEqual([])
+    expect(warnings).toEqual([])
+    expect(circuit.numQubits).toBe(4)
+    expect(circuit.gates.map((g) => [g.kind, g.qubits[0]])).toEqual([
+      ['H', 0],
+      ['X', 2],
+      ['M', 2],
+      ['M', 3],
+    ])
+  })
+
   it('parses whole-register measurement into one gate per qubit', () => {
     const src = 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[3];\ncreg c[3];\nmeasure q -> c;'
     const { circuit, errors, warnings } = parseQasm(src)
@@ -385,5 +407,64 @@ describe('step-through execution', () => {
       const total = r.probabilities.reduce((a, b) => a + b, 0)
       expect({ id: t.id, total: close(total, 1, 1e-9) }).toEqual({ id: t.id, total: true })
     }
+  })
+})
+
+
+describe('basis labels', () => {
+  it('uses little-endian labels consistently for kets and histograms', () => {
+    expect(bitString(1, 2)).toBe('10')
+    expect(ketLabel(1, 2)).toBe('|10⟩')
+    expect(bitString(6, 3)).toBe('011')
+    expect(ketLabel(6, 3)).toBe('|011⟩')
+  })
+})
+
+describe('mixed-state concurrence', () => {
+  it('reports one for a noisy Bell state and zero for a classically correlated mixture', () => {
+    const bell = new Array(16).fill({ re: 0, im: 0 })
+    bell[0] = { re: 0.5, im: 0 }
+    bell[3] = { re: 0.5, im: 0 }
+    bell[12] = { re: 0.5, im: 0 }
+    bell[15] = { re: 0.5, im: 0 }
+    expect(close(summarizeDensity(bell, 2).concurrence, 1, 1e-6)).toBe(true)
+
+    const classical = new Array(16).fill({ re: 0, im: 0 })
+    classical[0] = { re: 0.5, im: 0 }
+    classical[15] = { re: 0.5, im: 0 }
+    expect(summarizeDensity(classical, 2).concurrence).toBeLessThan(1e-6)
+  })
+})
+
+describe('SDK export snippets', () => {
+  it('uses valid Qiskit methods and parameter order', () => {
+    let c = emptyCircuit(2, 'exports')
+    c = addGate(c, 'H', [0], 0)
+    c = addGate(c, 'CNOT', [0, 1], 1)
+    c = addGate(c, 'CRX', [0, 1], 2, [Math.PI / 2])
+    const code = toQiskitPython(c)
+    expect(code).toContain('qc.h(q[0])')
+    expect(code).toContain('qc.cx(q[0], q[1])')
+    expect(code).toContain('qc.crx(math.pi / 2, q[0], q[1])')
+    expect(code).not.toContain('qc.Hadamard')
+  })
+
+  it('uses valid Cirq and PennyLane calls', () => {
+    let c = emptyCircuit(1, 'rotations')
+    c = addGate(c, 'RX', [0], 0, [Math.PI / 2])
+    c = addGate(c, 'Sdg', [0], 1)
+    expect(toCirqPython(c)).toContain('cirq.rx(math.pi / 2)(q0)')
+    expect(toPennyLanePython(c)).toContain('qml.RX(math.pi / 2, wires=0)')
+    expect(toPennyLanePython(c)).toContain('qml.adjoint(qml.S)(wires=0)')
+  })
+})
+
+describe('QASM column reconstruction', () => {
+  it('keeps independent gates in the same moment after a round trip', () => {
+    let c = emptyCircuit(2, 'parallel')
+    c = addGate(c, 'H', [0], 0)
+    c = addGate(c, 'X', [1], 0)
+    const parsed = parseQasm(toQasm(c)).circuit
+    expect(parsed.gates.map((g) => g.column)).toEqual([0, 0])
   })
 })

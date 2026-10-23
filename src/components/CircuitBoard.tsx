@@ -3,7 +3,7 @@
  * drop preview. The board is pure presentation; all mutations are reported to
  * the Composer so undo/redo and validation live in one place.
  */
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { GATE_LIBRARY, type GateKind } from '../lib/quantum/core'
 import { canPlace, type Circuit, type Gate } from '../lib/quantum/circuit'
 
@@ -80,6 +80,8 @@ export function CircuitBoard({ circuit, selectedId, armed, onSelect, onPlace, on
   const svgRef = useRef<SVGSVGElement | null>(null)
   const [preview, setPreview] = useState<Preview | null>(null)
   const [hoverCol, setHoverCol] = useState<number | null>(null)
+  const [cursor, setCursor] = useState({ column: 0, qubit: 0 })
+  const [boardFocused, setBoardFocused] = useState(false)
 
   const n = circuit.numQubits
   const columns = Math.max(10, Math.max(0, ...circuit.gates.map((g) => g.column)) + 4)
@@ -182,6 +184,49 @@ export function CircuitBoard({ circuit, selectedId, armed, onSelect, onPlace, on
     }
   }
 
+  // Keep the keyboard cursor reachable as soon as a palette gate is armed, and
+  // clamp it whenever the register shrinks.
+  useEffect(() => {
+    if (armed) svgRef.current?.focus()
+  }, [armed])
+  useEffect(() => {
+    setCursor((c) => ({
+      column: Math.max(0, Math.min(columns - 1, c.column)),
+      qubit: Math.max(0, Math.min(n - 1, c.qubit)),
+    }))
+  }, [columns, n])
+
+  const handleKeyDown = (e: React.KeyboardEvent<SVGSVGElement>) => {
+    const key = e.key
+    if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown') {
+      e.preventDefault()
+      setCursor((c) => ({
+        column: Math.max(0, Math.min(columns - 1, c.column + (key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0))),
+        qubit: Math.max(0, Math.min(n - 1, c.qubit + (key === 'ArrowUp' ? -1 : key === 'ArrowDown' ? 1 : 0))),
+      }))
+      return
+    }
+    if (key === 'Enter' || key === ' ') {
+      e.preventDefault()
+      if (armed) placeArmed(cursor.column, cursor.qubit)
+      else if (selectedId) onSelect(selectedId)
+      return
+    }
+    if ((key === 'Delete' || key === 'Backspace') && selectedId) {
+      e.preventDefault()
+      onDelete(selectedId)
+      return
+    }
+    if (key === 'Escape') {
+      e.preventDefault()
+      onSelect(null)
+    }
+  }
+
+  const cursorQubits = armed ? qubitsFor(armed, cursor.qubit, n) : [cursor.qubit]
+  const cursorTop = cy(Math.min(...cursorQubits)) - ROW_H / 2 + 4
+  const cursorHeight = cy(Math.max(...cursorQubits)) - cy(Math.min(...cursorQubits)) + ROW_H - 8
+
   return (
     <div
       className={`board-wrap scroll-thin ${preview ? 'drag-over' : ''}`}
@@ -192,11 +237,22 @@ export function CircuitBoard({ circuit, selectedId, armed, onSelect, onPlace, on
       }}
       onDrop={handleDrop}
     >
+      <span className="sr-only" aria-live="polite">
+        {armed
+          ? `${GATE_LIBRARY[armed].name} armed at column ${cursor.column + 1}, qubit ${cursor.qubit}. Press Enter to place.`
+          : `Circuit grid, ${n} qubits. Use arrow keys to move the cursor.`}
+      </span>
       <svg
         ref={svgRef}
         width={width}
         height={height}
         viewBox={`0 0 ${width} ${height}`}
+        role="application"
+        tabIndex={0}
+        aria-label={`Circuit grid, ${n} qubits. Use arrow keys to move the cursor, Enter to place an armed gate, Delete to remove the selected gate.`}
+        onFocus={() => setBoardFocused(true)}
+        onBlur={() => setBoardFocused(false)}
+        onKeyDown={handleKeyDown}
         style={{ display: 'block', minWidth: width, cursor: armed ? 'copy' : 'default' }}
         onClick={(e) => {
           if (e.target === svgRef.current) onSelect(null)
@@ -220,6 +276,26 @@ export function CircuitBoard({ circuit, selectedId, armed, onSelect, onPlace, on
             fill={armed ? 'rgba(155,124,255,.07)' : 'rgba(255,255,255,.03)'}
             pointerEvents="none"
           />
+        )}
+
+        {/* keyboard cursor */}
+        {(boardFocused || armed) && (
+          <g pointerEvents="none" className="kbd-cursor">
+            <rect
+              x={cx(cursor.column) - 23}
+              y={cursorTop}
+              width={46}
+              height={cursorHeight}
+              rx={10}
+              fill="rgba(155,124,255,.08)"
+              stroke="rgba(155,124,255,.85)"
+              strokeWidth={1.4}
+              strokeDasharray="4 3"
+            />
+            <text x={cx(cursor.column)} y={cy(cursor.qubit) + 4} textAnchor="middle" className="gate-label" fill="#d9d0ff">
+              {armed ? GATE_LIBRARY[armed].short : '⌖'}
+            </text>
+          </g>
         )}
 
         {/* wires */}
@@ -339,9 +415,22 @@ function GateGlyph({
     onSelect()
   }
 
+  const handleGateKey = (e: React.KeyboardEvent<SVGGElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      e.stopPropagation()
+      onSelect()
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault()
+      e.stopPropagation()
+      onDelete()
+    }
+  }
+  const label = `${spec.name} on ${gate.qubits.map((q) => `q${q}`).join(', ')}, column ${gate.column + 1}. Press Enter to select, Delete to remove.`
+
   if (gate.kind === 'BARRIER') {
     return (
-      <g className="gate" onClick={onSelect} onDoubleClick={onDelete}>
+      <g className="gate" role="button" tabIndex={0} aria-label={label} onClick={onSelect} onDoubleClick={onDelete} onKeyDown={handleGateKey}>
         <line x1={x} y1={PAD_T - 8} x2={x} y2={PAD_T + n * ROW_H - 4} stroke={color} strokeWidth={1.5} strokeDasharray="4 4" opacity={0.7} />
         <text x={x} y={PAD_T - 14} textAnchor="middle" className="gate-param" fill={color}>
           barrier
@@ -360,6 +449,10 @@ function GateGlyph({
     <g
       className={`gate ${selected ? 'sel' : ''}`}
       {...({ draggable: true } as unknown as React.SVGProps<SVGGElement>)}
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      onKeyDown={handleGateKey}
       onDragStart={startMove}
       onDragEnd={() => {
         ;(window as unknown as { __qmove?: string }).__qmove = undefined

@@ -11,6 +11,13 @@ import { TEMPLATES } from './quantum/templates'
 
 export type { Level }
 
+/**
+ * Recommended entry point for a brand-new learner. QI-02 is the first lesson
+ * where a single circuit produces an observable quantum effect, so it gives a
+ * useful win before the math-heavy foundations topics.
+ */
+export const START_HERE = 'QI-02'
+
 export interface Question {
   id: string
   prompt: string
@@ -552,6 +559,7 @@ const DOMAIN_QUESTIONS: Record<string, Question[]> = {
 // ---------------------------------------------------------------------------
 
 const TOPIC_TEMPLATE: Record<string, string> = {
+  'M-01': 'phase',
   'QI-01': 'superposition',
   'QI-02': 'superposition',
   'QI-03': 'bell',
@@ -684,6 +692,9 @@ function procedureFor(topic: Topic, templateId: string): string[] {
   if (templateId === 'grover' || templateId === 'qft') {
     steps.push('Step through one gate at a time and describe how the amplitudes move at each stage.')
   }
+  if (templateId === 'phase') {
+    steps.push('Open the state inspector and compare the complex amplitudes before and after S — the histogram stays 50/50 while the relative phase rotates by 90°.')
+  }
   if (templateId === 'teleportation') {
     steps.push('Watch which correction gates are skipped for the current outcome — that is classical feed-forward in action.')
   }
@@ -710,7 +721,14 @@ export function lessonFor(topicId: string): LabLesson | null {
 
   const specific = TOPIC_QUESTIONS[topic.id] ?? []
   const generic = DOMAIN_QUESTIONS[topic.domain] ?? DOMAIN_QUESTIONS['gates-circuits']
-  const pool = [...specific, ...generic, ...GENERAL_QUESTIONS]
+  // Deduplicate by id: a duplicate id would make the quiz's "answered" count
+  // impossible to satisfy and strand the learner on a stage.
+  const seen = new Set<string>()
+  const pool = [...specific, ...generic, ...GENERAL_QUESTIONS].filter((q) => {
+    if (seen.has(q.id)) return false
+    seen.add(q.id)
+    return true
+  })
 
   // Split deterministically so the pretest and posttest are disjoint but balanced.
   const pretest = pool.slice(0, Math.min(3, pool.length))

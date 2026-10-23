@@ -6,10 +6,16 @@
  * breakdown so the UI can show *why* something failed, and the tutor can turn
  * that into a Socratic hint.
  */
-import { countGates, type Circuit } from './quantum/circuit'
+import {
+  addGate,
+  countGates,
+  emptyCircuit,
+  type Circuit,
+  type GateCondition,
+} from './quantum/circuit'
 import { concurrence, summarizeState } from './quantum/analysis'
 import { simulate, type SimResult } from './quantum/simulator'
-import type { Complex } from './quantum/core'
+import type { Complex, GateKind } from './quantum/core'
 
 export type ChallengeLevel = 'starter' | 'intermediate' | 'advanced'
 
@@ -34,12 +40,39 @@ export interface Challenge {
   topicIds: string[]
   xp: number
   qubits: number
-  /** Template loaded into the composer as a starting point. */
-  start?: string
+  /**
+   * Starting circuit loaded by the challenge page and by Reset. A scaffold is
+   * deliberately *not* a solution: it only removes setup boilerplate, so the
+   * learner still has to add the gates the challenge is teaching.
+   */
+  scaffold: () => Circuit
   /** Ordered Socratic ladder — one hint per attempt. */
   hints: string[]
   grade: (circuit: Circuit) => GradeResult
 }
+
+/** Small builder used by challenge scaffolds. */
+const scaffold = (
+  numQubits: number,
+  name: string,
+  steps: Array<[GateKind, number[], number?, number[]?, GateCondition?]> = [],
+): Circuit => {
+  let circuit = emptyCircuit(numQubits, name)
+  for (const [kind, qubits, column, params, condition] of steps) {
+    circuit = addGate(circuit, kind, qubits, column, params, condition)
+  }
+  return circuit
+}
+
+const kindCount = (circuit: Circuit, kind: GateKind): number =>
+  circuit.gates.filter((g) => g.kind === kind).length
+
+const qubitCountCheck = (circuit: Circuit, expected: number): GradeCheck =>
+  gateCheck(
+    'Qubit register',
+    circuit.numQubits === expected,
+    `${circuit.numQubits} qubit(s) in the register, expected ${expected}.`,
+  )
 
 // ---------------------------------------------------------------------------
 // Grading helpers
@@ -64,13 +97,6 @@ function probsMatch(actual: number[], expected: Record<number, number>, tol = TO
     ok: failures.length === 0,
     detail: failures.length ? failures.join(' · ') : 'Distribution matches exactly.',
   }
-}
-
-/** Probability that qubit q is measured as 1. */
-function pOne(probs: number[], q: number): number {
-  let acc = 0
-  for (let i = 0; i < probs.length; i++) if ((i >> q) & 1) acc += probs[i]
-  return acc
 }
 
 /** State equality up to an arbitrary global phase. */
@@ -101,6 +127,16 @@ const e_im = (c: Complex) => c.im
 
 const gateCheck = (label: string, ok: boolean, detail: string): GradeCheck => ({ label, ok, detail })
 
+/** Exact QFT amplitudes for the computational basis state |j>. */
+function qftState(n: number, j: number): Complex[] {
+  const dim = 1 << n
+  const scale = 1 / Math.sqrt(dim)
+  return Array.from({ length: dim }, (_, k) => {
+    const angle = (2 * Math.PI * j * k) / dim
+    return { re: scale * Math.cos(angle), im: scale * Math.sin(angle) }
+  })
+}
+
 function finish(checks: GradeCheck[], hint: string): GradeResult {
   const passed = checks.every((c) => c.ok)
   const score = checks.reduce((s, c) => s + (c.ok ? 1 : 0), 0) / Math.max(1, checks.length)
@@ -120,7 +156,16 @@ function gradeWith(circuit: Circuit, fn: (sim: SimResult) => GradeCheck[], hint:
       hint,
     }
   }
-  return finish(fn(sim), hint)
+  try {
+    return finish(fn(sim), hint)
+  } catch (err) {
+    return {
+      passed: false,
+      score: 0,
+      checks: [gateCheck('Circuit structure', false, err instanceof Error ? err.message : 'Grading failed')],
+      hint,
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -136,6 +181,7 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-02'],
     xp: 40,
     qubits: 1,
+    scaffold: () => scaffold(1, 'Fair coin — start here'),
     hints: [
       'Which single-qubit gate maps the north pole of the Bloch sphere onto the equator?',
       'The Hadamard gate H creates an equal superposition from |0⟩.',
@@ -145,6 +191,7 @@ export const CHALLENGES: Challenge[] = [
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 1),
           probsMatch(sim.probabilities, { 0: 0.5, 1: 0.5 }),
           gateCheck('Gate budget', countGates(circuit) <= 2, `${countGates(circuit)} gate(s) used — 1 is enough.`),
         ],
@@ -159,6 +206,7 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-03', 'QI-04'],
     xp: 60,
     qubits: 2,
+    scaffold: () => scaffold(2, 'Bell pair — start here'),
     hints: [
       'You need one gate that creates a superposition and one that creates correlation.',
       'H on the control, then CNOT from that control to the other qubit.',
@@ -168,6 +216,7 @@ export const CHALLENGES: Challenge[] = [
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 2),
           probsMatch(sim.probabilities, { 0: 0.5, 3: 0.5 }),
           gateCheck(
             'Genuine entanglement',
@@ -186,7 +235,11 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-04'],
     xp: 70,
     qubits: 2,
-    start: 'bell',
+    scaffold: () =>
+      scaffold(2, 'Anti-Bell — finish the pair', [
+        ['H', [0], 0],
+        ['CNOT', [0, 1], 1],
+      ]),
     hints: [
       'Start from the Bell pair you already know and flip exactly one qubit.',
       'An X on one of the two qubits swaps 00↔01 and 11↔10 — a bit flip on q0 is enough.',
@@ -196,8 +249,10 @@ export const CHALLENGES: Challenge[] = [
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 2),
           probsMatch(sim.probabilities, { 1: 0.5, 2: 0.5 }),
           gateCheck('Still entangled', concurrence(sim.state) >= 0.99, `Concurrence = ${concurrence(sim.state).toFixed(2)}.`),
+          gateCheck('Gate budget', countGates(circuit) <= 5, `${countGates(circuit)} gate(s) used — 3 is enough.`),
         ],
         'The two outcomes must differ in exactly one bit and never agree.',
       ),
@@ -210,7 +265,11 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-03'],
     xp: 90,
     qubits: 3,
-    start: 'ghz',
+    scaffold: () =>
+      scaffold(3, 'GHZ — extend the Bell pair', [
+        ['H', [0], 0],
+        ['CNOT', [0, 1], 1],
+      ]),
     hints: [
       'Generalise the Bell recipe: one superposition, then spread the correlation.',
       'H(q0), then CNOT(q0→q1) and CNOT(q1→q2).',
@@ -220,12 +279,14 @@ export const CHALLENGES: Challenge[] = [
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 3),
           probsMatch(sim.probabilities, { 0: 0.5, 7: 0.5 }),
           gateCheck(
             'Three-way entanglement',
             summarizeState(sim.state, 3).maxEntanglementEntropy >= 0.99,
             `Max entropy across a cut = ${summarizeState(sim.state, 3).maxEntanglementEntropy.toFixed(2)} bits.`,
           ),
+          gateCheck('Gate budget', countGates(circuit) <= 6, `${countGates(circuit)} gate(s) used — 3 is enough.`),
         ],
         'Every qubit must agree: 000 or 111 only.',
       ),
@@ -238,6 +299,7 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-01', 'G-04'],
     xp: 80,
     qubits: 1,
+    scaffold: () => scaffold(1, 'Hidden phase — superposition ready', [['H', [0], 0]]),
     hints: [
       'First make an equal superposition, then rotate only the phase of the |1⟩ branch.',
       'H gives (|0⟩+|1⟩)/√2. The S gate multiplies |1⟩ by i.',
@@ -247,11 +309,13 @@ export const CHALLENGES: Challenge[] = [
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 1),
           probsMatch(sim.probabilities, { 0: 0.5, 1: 0.5 }),
           stateUpToPhase(sim.state, [
             { re: Math.SQRT1_2, im: 0 },
             { re: 0, im: Math.SQRT1_2 },
           ]),
+          gateCheck('Gate budget', countGates(circuit) <= 4, `${countGates(circuit)} gate(s) used — 2 is enough.`),
         ],
         'Probabilities look right, but check the complex phase on the |1⟩ amplitude.',
       ),
@@ -264,6 +328,7 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['G-04'],
     xp: 110,
     qubits: 2,
+    scaffold: () => scaffold(2, 'CZ entangler — start here'),
     hints: [
       'CZ is diagonal in the computational basis, so it only acts on branches that already exist.',
       'Put both qubits in superposition first: H(q0), H(q1).',
@@ -273,10 +338,16 @@ export const CHALLENGES: Challenge[] = [
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 2),
           gateCheck(
             'Only H and CZ',
-            circuit.gates.every((g) => g.kind === 'H' || g.kind === 'CZ' || g.kind === 'M'),
+            circuit.gates.every((g) => g.kind === 'H' || g.kind === 'CZ'),
             `Used: ${[...new Set(circuit.gates.map((g) => g.kind))].join(', ') || 'nothing'}.`,
+          ),
+          gateCheck(
+            'Uses both gate types',
+            kindCount(circuit, 'H') >= 2 && kindCount(circuit, 'CZ') >= 1,
+            `${kindCount(circuit, 'H')} H and ${kindCount(circuit, 'CZ')} CZ gate(s).`,
           ),
           gateCheck('Maximal entanglement', concurrence(sim.state) >= 0.99, `Concurrence = ${concurrence(sim.state).toFixed(2)}.`),
         ],
@@ -291,7 +362,11 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['A-07'],
     xp: 130,
     qubits: 2,
-    start: 'grover',
+    scaffold: () =>
+      scaffold(2, 'Grover — uniform superposition ready', [
+        ['H', [0], 0],
+        ['H', [1], 0],
+      ]),
     hints: [
       'Grover = uniform superposition, an oracle that marks |11⟩, then a reflection about the mean.',
       'The oracle is CZ (it flips the sign of |11⟩); the reflection is H, X, CZ, X, H.',
@@ -300,68 +375,91 @@ export const CHALLENGES: Challenge[] = [
     grade: (circuit) =>
       gradeWith(
         circuit,
-        (sim) => [probsMatch(sim.probabilities, { 3: 1 }, 1e-2)],
+        (sim) => [
+          qubitCountCheck(circuit, 2),
+          probsMatch(sim.probabilities, { 3: 1 }, 1e-2),
+          gateCheck(
+            'Grover structure',
+            kindCount(circuit, 'H') >= 4 && kindCount(circuit, 'CZ') >= 2 && kindCount(circuit, 'X') >= 4,
+            `${kindCount(circuit, 'H')} H, ${kindCount(circuit, 'CZ')} CZ, ${kindCount(circuit, 'X')} X.`,
+          ),
+          gateCheck('Gate budget', countGates(circuit) <= 14, `${countGates(circuit)} gate(s) used — 12 is the textbook version.`),
+        ],
         'After one iteration the marked state should dominate completely.',
       ),
   },
   {
     id: 'deutsch-jozsa',
     title: 'One query oracle',
-    brief: 'Build a balanced Deutsch–Jozsa circuit so the input register can never read 00.',
+    brief:
+      'Build a balanced two-input Deutsch–Jozsa circuit: all four input outcomes become equally likely, and the ancilla returns to |0⟩.',
     difficulty: 'advanced',
     topicIds: ['A-01'],
     xp: 140,
     qubits: 3,
-    start: 'deutsch-jozsa',
+    scaffold: () =>
+      scaffold(3, 'Deutsch–Jozsa — state preparation ready', [
+        ['X', [2], 0],
+        ['H', [2], 1],
+        ['H', [0], 2],
+        ['H', [1], 3],
+      ]),
     hints: [
       'The ancilla starts in |1⟩ then gets a Hadamard, so CNOTs into it kick back a phase.',
-      'End by undoing the ancilla: H then X, so it returns to |0⟩.',
-      'Use two CNOTs into the ancilla (one from each input qubit) to make f balanced.',
+      'A balanced function makes the two input amplitudes interfere into an equal superposition of all four inputs.',
+      'Use two CNOTs into the ancilla, H the inputs again, then uncompute the ancilla with H and X.',
     ],
     grade: (circuit) =>
       gradeWith(
         circuit,
         (sim) => [
+          qubitCountCheck(circuit, 3),
           gateCheck(
-            'Input register never reads 00',
-            pOne(sim.probabilities, 0) + pOne(sim.probabilities, 1) > 0.99 ||
-              !near(sim.probabilities[0], 1, 1e-2),
-            `P(input = 00) = ${sim.probabilities[0].toFixed(3)}.`,
+            'Balanced oracle',
+            kindCount(circuit, 'CNOT') >= 2,
+            `${kindCount(circuit, 'CNOT')} CNOT(s) into the ancilla.`,
           ),
           gateCheck(
-            'Ancilla uncomputed',
-            near(pOne(sim.probabilities, 2), 0, 5e-2),
-            `P(ancilla = 1) = ${pOne(sim.probabilities, 2).toFixed(3)}.`,
+            'Interference step',
+            kindCount(circuit, 'H') >= 5,
+            `${kindCount(circuit, 'H')} Hadamards — five are needed (two inputs twice, plus the ancilla).`,
           ),
+          // f(x0,x1)=x0 XOR x1 maps to a uniform input distribution:
+          // P(00)=P(01)=P(10)=P(11)=0.25, with the ancilla back in |0>.
+          probsMatch(sim.probabilities, { 0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25 }, 2e-2),
         ],
-        'A balanced function must leave at least one input qubit excited.',
+        'For a balanced function the input register is uniform over all four values, not concentrated on 00.',
       ),
   },
   {
     id: 'qft-uniform',
-    title: 'Fourier flatline',
-    brief: 'Apply the 3-qubit QFT to |000⟩ and confirm all eight outcomes become equally likely.',
+    title: 'Fourier phase ramp',
+    brief:
+      'Prepare |001⟩ and apply the 3-qubit QFT. The histogram is flat, but the complex phases carry the Fourier information — match the exact state.',
     difficulty: 'advanced',
     topicIds: ['A-04'],
     xp: 140,
     qubits: 3,
-    start: 'qft',
+    scaffold: () => scaffold(3, 'QFT — input |001⟩ ready', [['X', [0], 0]]),
     hints: [
-      'The QFT turns a single basis state into a uniform superposition with a phase ramp.',
-      'Order matters: start with the most significant qubit and halve the controlled phase each step.',
-      'H(q2), CRZ(q2→q1, π/2), H(q1), CRZ(q2→q0, π/4), CRZ(q1→q0, π/2), H(q0), SWAP(q2,q0).',
+      'QFT|001⟩ = (1/√8) Σₖ e^{2πik/8}|k⟩. Every outcome has probability 1/8, but the phases form a ramp.',
+      'In Qiskit’s little-endian order the bit-reversal SWAP comes first, then a ladder of H and controlled phases.',
+      'Build each controlled phase with RZ(θ/2) on the control plus CRZ(θ). For 3 qubits use θ = π/2, π/4, π/2 and SWAP(q0,q2).',
     ],
     grade: (circuit) =>
       gradeWith(
         circuit,
         (sim) => [
-          probsMatch(
-            sim.probabilities,
-            Object.fromEntries(Array.from({ length: 8 }, (_, i) => [i, 1 / 8])),
-            8e-3,
+          qubitCountCheck(circuit, 3),
+          gateCheck(
+            'QFT ladder',
+            kindCount(circuit, 'H') >= 3 && kindCount(circuit, 'CRZ') >= 3,
+            `${kindCount(circuit, 'H')} H and ${kindCount(circuit, 'CRZ')} CRZ gate(s).`,
           ),
+          stateUpToPhase(sim.state, qftState(3, 1)),
+          gateCheck('Gate budget', countGates(circuit) <= 12, `${countGates(circuit)} gate(s) used — 10 is enough.`),
         ],
-        'Every one of the eight outcomes should be equally likely.',
+        'A flat histogram is not enough: compare the phase of every amplitude with QFT|001⟩.',
       ),
   },
   {
@@ -372,7 +470,12 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-06'],
     xp: 180,
     qubits: 3,
-    start: 'teleportation',
+    scaffold: () =>
+      scaffold(3, 'Teleportation — state and Bell pair ready', [
+        ['RY', [0], 0, [Math.PI / 3]],
+        ['H', [1], 1],
+        ['CNOT', [1, 2], 2],
+      ]),
     hints: [
       'Prepare the state, then share a Bell pair between the middle and destination qubit.',
       'A Bell-basis measurement is CNOT then H on the source, followed by measurement.',
@@ -381,8 +484,19 @@ export const CHALLENGES: Challenge[] = [
     grade: (circuit) => {
       const conditional = circuit.gates.filter((g) => g.condition)
       const measurements = circuit.gates.filter((g) => g.kind === 'M')
+      const correctX = conditional.some(
+        (g) => g.kind === 'X' && g.condition?.qubit === 1 && g.condition.value === 1,
+      )
+      const correctZ = conditional.some(
+        (g) => g.kind === 'Z' && g.condition?.qubit === 0 && g.condition.value === 1,
+      )
       const checks: GradeCheck[] = [
-        gateCheck('Classical feed-forward present', conditional.length >= 2, `${conditional.length} conditional gate(s).`),
+        qubitCountCheck(circuit, 3),
+        gateCheck(
+          'Classical feed-forward present',
+          conditional.length >= 2 && correctX && correctZ,
+          `${conditional.length} conditional gate(s); X on c1 and Z on c0 are required.`,
+        ),
         gateCheck('Both source qubits measured', measurements.length >= 3, `${measurements.length} measurement(s).`),
       ]
       let sim: SimResult
@@ -418,6 +532,7 @@ export const CHALLENGES: Challenge[] = [
     topicIds: ['QI-05'],
     xp: 60,
     qubits: 2,
+    scaffold: () => scaffold(2, 'No-cloning — |+⟩ ready', [['H', [0], 0]]),
     hints: [
       'CNOT copies basis states perfectly — that is the trap.',
       'With H on q0 first, the control is in superposition, so the CNOT entangles instead of copying.',
@@ -429,21 +544,20 @@ export const CHALLENGES: Challenge[] = [
         (sim) => {
           const summary = summarizeState(sim.state, 2)
           return [
+            qubitCountCheck(circuit, 2),
             gateCheck(
-              'Attempted a copy',
-              circuit.gates.some((g) => g.kind === 'CNOT') && circuit.gates.some((g) => g.kind === 'H'),
+              'Attempted a copy with H and CNOT only',
+              circuit.gates.every((g) => g.kind === 'H' || g.kind === 'CNOT') &&
+                circuit.gates.some((g) => g.kind === 'CNOT') &&
+                circuit.gates.some((g) => g.kind === 'H'),
               'Use H on q0 and CNOT(q0 → q1).',
             ),
             gateCheck(
               'Reproduced the failure mode',
-              summary.concurrence > 0.5,
+              summary.concurrence >= 0.99,
               `Concurrence = ${summary.concurrence.toFixed(2)} — any real clone would be separable (0).`,
             ),
-            gateCheck(
-              'Not a product state',
-              Math.abs(sim.probabilities[2] - 0.5) < 0.05 || Math.abs(sim.probabilities[3] - 0.5) < 0.05,
-              'A successful clone would need P(00) = P(01) = P(10) = P(11) = 0.25.',
-            ),
+            probsMatch(sim.probabilities, { 0: 0.5, 3: 0.5 }),
           ]
         },
         'A universal cloner would need |+⟩|0⟩ → |+⟩|+⟩. Entanglement gets in the way.',

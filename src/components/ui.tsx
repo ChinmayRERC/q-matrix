@@ -3,7 +3,7 @@
  * Kept dependency-free (no component library) so the visual language stays
  * consistent with the design tokens in app.css.
  */
-import { useEffect, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
 import {
   Bot,
   Crown,
@@ -244,10 +244,44 @@ export function Modal({
   footer?: ReactNode
   wide?: boolean
 }) {
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+  const titleId = useId()
+
   useEffect(() => {
     if (!open) return
+    const previous = document.activeElement as HTMLElement | null
+    const focusable = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => !el.hasAttribute('hidden'))
+
+    // Focus the close button (first control) so keyboard users enter the modal.
+    const first = focusable()[0]
+    first?.focus()
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const items = focusable()
+      if (!items.length) {
+        e.preventDefault()
+        dialogRef.current?.focus()
+        return
+      }
+      const index = items.indexOf(document.activeElement as HTMLElement)
+      if (e.shiftKey && (index <= 0 || index === -1)) {
+        e.preventDefault()
+        items[items.length - 1].focus()
+      } else if (!e.shiftKey && (index === items.length - 1 || index === -1)) {
+        e.preventDefault()
+        items[0].focus()
+      }
     }
     window.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
@@ -255,15 +289,23 @@ export function Modal({
     return () => {
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
+      previous?.focus?.()
     }
   }, [open, onClose])
 
   if (!open) return null
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`modal ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true">
+      <div
+        ref={dialogRef}
+        className={`modal ${wide ? 'wide' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         <div className="modal-head">
-          <h3 className="grow">{title}</h3>
+          <h3 className="grow" id={titleId}>{title}</h3>
           <button className="icon-btn" onClick={onClose} aria-label="Close">
             <X size={15} />
           </button>

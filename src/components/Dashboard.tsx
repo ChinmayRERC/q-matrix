@@ -18,7 +18,7 @@ import {
 import { TOPICS, TOPIC_BY_ID } from '../content/topics.generated'
 import { BADGES, QUESTS, levelInfo, liveStreak } from '../lib/gamification'
 import { MASTERED_THRESHOLD, decayedMastery, recommendTopics } from '../lib/mastery'
-import { gainLabel } from '../lib/lessons'
+import { gainLabel, START_HERE } from '../lib/lessons'
 import { useAppStore, deriveStats } from '../store/useAppStore'
 import { Btn, Meter, Panel, Pill, Ring, Stat } from './ui'
 
@@ -29,6 +29,10 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
   const stats = deriveStats(state)
   const mastered = Object.values(state.mastery).filter((m) => decayedMastery(m, Date.now()) >= MASTERED_THRESHOLD).length
   const started = Object.values(state.mastery).filter((m) => m.attempts > 0).length
+  const lessonsDone = stats.lessonsCompleted
+  const startId = TOPIC_BY_ID[START_HERE] ? START_HERE : TOPICS[0].id
+  const startTopic = TOPIC_BY_ID[startId]
+  const completedLessons = Object.entries(state.lessons).filter(([, lesson]) => lesson.completedAt)
 
   const recommendations = useMemo(
     () =>
@@ -52,14 +56,19 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
     .filter(Boolean)
     .slice(0, 3)
 
-  const suggestionTopics = (continueTopics.length ? continueTopics.map((t) => t.id) : recommendations.map((r) => r.topic.id))
+  const suggestionTopics = (continueTopics.length
+    ? continueTopics.map((t) => t.id)
+    : lessonsDone === 0
+      ? [startId, ...recommendations.map((r) => r.topic.id)]
+      : recommendations.map((r) => r.topic.id))
+    .filter((id, index, all) => all.indexOf(id) === index)
     .flatMap((id) => (TOPIC_BY_ID[id] ? [TOPIC_BY_ID[id]] : []))
+    .slice(0, 4)
 
   const dailyQuests = QUESTS.filter((q) => q.cadence === 'daily')
   const weeklyQuests = QUESTS.filter((q) => q.cadence === 'weekly')
   const earned = BADGES.filter((b) => state.badges.includes(b.id))
   const nextBadge = BADGES.find((b) => !state.badges.includes(b.id))
-  const lessonsDone = stats.lessonsCompleted
 
   return (
     <div className="stack gap-18 fade-in">
@@ -73,6 +82,11 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
               <Pill tone="amber">
                 <Flame size={10} /> {streak} day streak
               </Pill>
+              {lessonsDone === 0 && (
+                <Pill tone="green">
+                  <BookOpen size={10} /> START HERE
+                </Pill>
+              )}
             </div>
             <h1 className="display" style={{ fontSize: 'clamp(30px, 4vw, 46px)', marginTop: 12 }}>
               The universe is <span style={{ color: 'var(--violet)' }}>undecided</span>.
@@ -85,8 +99,8 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
                 : `${lessonsDone} lab${lessonsDone === 1 ? '' : 's'} complete, ${mastered} topic${mastered === 1 ? '' : 's'} mastered. Your model says the next best move is below.`}
             </p>
             <div className="row gap-8 wrap" style={{ marginTop: 18 }}>
-              <Btn variant="primary" size="lg" icon={<BookOpen size={15} />} onClick={() => onOpenTopic(recommendations[0]?.topic.id ?? TOPICS[0].id)}>
-                {lessonsDone === 0 ? 'Start the first lab' : 'Continue learning'}
+              <Btn variant="primary" size="lg" icon={<BookOpen size={15} />} onClick={() => onOpenTopic(lessonsDone === 0 ? startId : recommendations[0]?.topic.id ?? startId)}>
+                {lessonsDone === 0 ? `Start here: ${startTopic?.title ?? 'Superposition'}` : 'Continue learning'}
               </Btn>
               <Btn size="lg" icon={<Orbit size={15} />} onClick={() => onNavigate('#/galaxy')}>
                 Open the Galaxy
@@ -156,6 +170,7 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
                         <Pill tone={topic.level === 'B' ? 'green' : topic.level === 'I' ? 'cyan' : topic.level === 'A' ? 'amber' : 'pink'}>
                           {topic.levelName}
                         </Pill>
+                        {topic.id === startId && lessonsDone === 0 && <Pill tone="green">START HERE</Pill>}
                         <span className="tiny dim">{topic.domainName}</span>
                       </div>
                       <div style={{ fontWeight: 600, fontSize: 13.5, marginTop: 4 }}>{topic.title}</div>
@@ -176,20 +191,19 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
             </div>
           </Panel>
 
-          <Panel title="Learning gain" sub="Pre-test → post-test, normalised (Hake)" tight>
-            {Object.keys(state.lessons).length === 0 ? (
+          <Panel title="Learning gain" sub="Hake gain = (post − pre) / (1 − pre)" tight>
+            {completedLessons.length === 0 ? (
               <div className="empty">
                 <div className="glyph"><Zap size={17} /></div>
-                <div style={{ color: 'var(--muted)', fontWeight: 600 }}>No lab attempts yet</div>
+                <div style={{ color: 'var(--muted)', fontWeight: 600 }}>No completed labs yet</div>
                 <div style={{ maxWidth: 380, lineHeight: 1.5 }}>
-                  Each Virtual Lab records a pre-test and a post-test, so you can see the actual learning gain rather than
-                  just time spent.
+                  Each Virtual Lab records a pretest and a posttest, so you can see the actual learning gain rather than
+                  just time spent. Finish a lab to populate this panel.
                 </div>
               </div>
             ) : (
               <div className="stack gap-8">
-                {Object.entries(state.lessons)
-                  .filter(([, l]) => l.completedAt)
+                {completedLessons
                   .sort((a, b) => (b[1].completedAt ?? 0) - (a[1].completedAt ?? 0))
                   .slice(0, 5)
                   .map(([id, lesson]) => {
@@ -200,7 +214,7 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
                           {topic?.title ?? id}
                         </span>
                         <span className="tiny dim mono">
-                          {lesson.pre * 100}% → {lesson.post * 100}%
+                          {Math.round(lesson.pre * 100)}% → {Math.round(lesson.post * 100)}%
                         </span>
                         <Pill tone={lesson.gain >= 0.7 ? 'green' : lesson.gain >= 0.3 ? 'amber' : 'cyan'}>{gainLabel(lesson.gain)}</Pill>
                       </div>
@@ -312,8 +326,8 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
               <Btn icon={<Gamepad2 size={14} />} onClick={() => onNavigate('#/challenges')}>
                 Solve a circuit challenge
               </Btn>
-              <Btn icon={<BookOpen size={14} />} onClick={() => onOpenTopic(continueTopics[0]?.id ?? TOPICS[0].id)}>
-                Resume a Virtual Lab
+              <Btn icon={<BookOpen size={14} />} onClick={() => onOpenTopic(continueTopics[0]?.id ?? startId)}>
+                {continueTopics.length ? 'Resume a Virtual Lab' : `Start here: ${startTopic?.title ?? 'Superposition'}`}
               </Btn>
             </div>
           </Panel>

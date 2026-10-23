@@ -83,11 +83,16 @@ export function optimizeCircuit(circuit: Circuit): { circuit: Circuit; removed: 
   if (!pairs.length) return { circuit, removed: [] }
   const doomed = new Set(pairs.flat().map((g) => g.id))
   const removed = circuit.gates.filter((g) => doomed.has(g.id))
-  const kept = circuit.gates
-    .filter((g) => !doomed.has(g.id))
-    .sort((a, b) => a.column - b.column)
-    .map((g, i) => ({ ...g, column: i }))
-  return { circuit: { ...circuit, gates: kept }, removed }
+  // Preserve simultaneity: compact only the distinct surviving columns. Mapping
+  // every gate to its array index would turn parallel gates into a deeper
+  // sequential circuit (H on q0 and X on q1 share one moment before optimisation).
+  const kept = circuit.gates.filter((g) => !doomed.has(g.id))
+  const columns = [...new Set(kept.map((g) => g.column))].sort((a, b) => a - b)
+  const compact = new Map(columns.map((column, index) => [column, index]))
+  const gates = kept
+    .sort((a, b) => a.column - b.column || a.qubits[0] - b.qubits[0])
+    .map((g) => ({ ...g, column: compact.get(g.column) ?? g.column }))
+  return { circuit: { ...circuit, gates }, removed }
 }
 
 /**
@@ -140,21 +145,32 @@ export function analyzeCircuit(circuit: Circuit, sim?: SimResult): Insight[] {
     })
   }
 
-  const firstMeasure = circuit.gates
-    .filter((g) => g.kind === 'M')
-    .reduce((min, g) => Math.min(min, g.column), Number.POSITIVE_INFINITY)
-  if (Number.isFinite(firstMeasure)) {
-    const after = circuit.gates.filter((g) => g.kind !== 'M' && g.column > firstMeasure)
-    if (after.length) {
-      insights.push({
-        id: 'after-measure',
-        level: 'error',
-        title: `${after.length} gate(s) run after a measurement`,
-        detail: 'Once a qubit is measured its state is classical; a gate afterwards acts on a collapsed state.',
-        fix: 'Move the measurement to the end, or make the gate classically controlled.',
-        gateIds: after.map((g) => g.id),
-      })
-    }
+  // Only an *unconditional* gate on a qubit that has already been measured is
+  // invalid. Classically controlled corrections are the whole point of
+  // feed-forward (teleportation), and gates on other, unmeasured qubits remain
+  // perfectly valid after a mid-circuit measurement.
+  const firstMeasureByQubit = new Map<number, number>()
+  for (const g of circuit.gates) {
+    if (g.kind !== 'M') continue
+    const q = g.qubits[0]
+    firstMeasureByQubit.set(q, Math.min(firstMeasureByQubit.get(q) ?? Infinity, g.column))
+  }
+  const after = circuit.gates.filter((g) => {
+    if (g.kind === 'M' || g.condition) return false
+    return g.qubits.some((q) => {
+      const measuredAt = firstMeasureByQubit.get(q)
+      return measuredAt !== undefined && g.column > measuredAt
+    })
+  })
+  if (after.length) {
+    insights.push({
+      id: 'after-measure',
+      level: 'error',
+      title: `${after.length} gate(s) act on a measured qubit`,
+      detail: 'An unconditional gate after a measurement acts on a collapsed state.',
+      fix: 'Move the measurement to the end, or make the gate classically controlled.',
+      gateIds: after.map((g) => g.id),
+    })
   }
 
   if (!measured.size && circuit.gates.some((g) => g.kind !== 'M')) {

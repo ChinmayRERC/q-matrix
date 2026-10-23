@@ -6,8 +6,9 @@ import { useMemo, useState } from 'react'
 import { ArrowRight, Check, Lock, Route, Search } from 'lucide-react'
 import { LEVEL_NAMES, LEARNING_PATHS, TOPICS, TOPIC_BY_ID, type Level } from '../content/topics.generated'
 import { MASTERED_THRESHOLD, decayedMastery } from '../lib/mastery'
+import { START_HERE } from '../lib/lessons'
 import { useAppStore } from '../store/useAppStore'
-import { Meter, Panel, Pill } from './ui'
+import { Btn, Meter, Panel, Pill } from './ui'
 
 const LEVEL_TONE: Record<Level, 'green' | 'cyan' | 'amber' | 'pink'> = {
   B: 'green',
@@ -36,6 +37,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
   )
 
   const active = paths.find((p) => p.id === selected) ?? paths[0]
+  const startTopic = TOPIC_BY_ID[START_HERE]
 
   const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -65,6 +67,21 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
           />
         </div>
       </div>
+
+      {startTopic && (
+        <Panel tight>
+          <div className="row gap-12 wrap" style={{ padding: 4 }}>
+            <Pill tone="green">START HERE</Pill>
+            <span className="small grow" style={{ lineHeight: 1.5 }}>
+              New to quantum computing? Begin with <strong>{startTopic.title}</strong> ({startTopic.id}) — one H gate, a
+              50/50 histogram, and the measurement rule that explains it.
+            </span>
+            <Btn size="sm" variant="primary" onClick={() => onOpenTopic(START_HERE)}>
+              Open the first lab <ArrowRight size={13} />
+            </Btn>
+          </div>
+        </Panel>
+      )}
 
       {query.trim() && (
         <Panel title={`Search results for "${query.trim()}"`} tight>

@@ -15,7 +15,6 @@ import {
   Info,
   LayoutDashboard,
   Orbit,
-  Settings2,
   Sparkles,
   Trophy,
   Zap,
@@ -52,7 +51,7 @@ const TITLES: Record<string, { title: string; sub: string }> = {
   lab: { title: 'Workbench', sub: 'Design, simulate, export' },
   lesson: { title: 'Virtual Lab', sub: 'Seven-stage guided lesson' },
   challenges: { title: 'Challenges', sub: 'Auto-graded circuit problems' },
-  progress: { title: 'Progress', sub: 'Mastery, badges and educator export' },
+  progress: { title: 'Progress & data', sub: 'Mastery, badges, educator export and settings' },
 }
 
 export default function App() {
@@ -93,7 +92,7 @@ export default function App() {
     { id: 'paths', label: 'Paths', icon: <BookOpen size={16} /> },
     { id: 'lab', label: 'Workbench', icon: <Atom size={16} /> },
     { id: 'challenges', label: 'Challenges', icon: <Gamepad2 size={16} /> },
-    { id: 'progress', label: 'Progress', icon: <Trophy size={16} /> },
+    { id: 'progress', label: 'Progress & data', icon: <Trophy size={16} /> },
   ]
 
   return (
@@ -151,11 +150,6 @@ export default function App() {
                 <span className="tiny dim">{Math.round(level.progress * 100)}%</span>
               </div>
             </div>
-
-            <button className="nav-item" onClick={() => go('/progress')} style={{ fontSize: 12 }}>
-              <Settings2 size={14} />
-              <span>Settings & data</span>
-            </button>
           </div>
         </aside>
 

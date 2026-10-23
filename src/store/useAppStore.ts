@@ -118,7 +118,7 @@ export interface AppState {
   awardXp: (amount: number, reason?: string) => void
   recordAnswer: (topicId: string, correct: boolean) => void
   startLesson: (topicId: string) => void
-  completeLesson: (topicId: string, pre: number, post: number) => void
+  completeLesson: (topicId: string, pre: number, post: number, xp?: number) => void
   recordChallenge: (challengeId: string, xp: number, result: { passed: boolean; score: number }, attempt: number) => void
   recordTutorQuestion: () => void
   recordNoiseRun: () => void
@@ -260,7 +260,7 @@ export const useAppStore = create<AppState>()(
         get().visitTopic(topicId)
       },
 
-      completeLesson: (topicId, pre, post) => {
+      completeLesson: (topicId, pre, post, xp) => {
         const state = get()
         const existing = state.lessons[topicId]
         const gain = learningGain(pre, post)
@@ -277,7 +277,10 @@ export const useAppStore = create<AppState>()(
             },
           },
         }))
-        get().awardXp(XP_AWARD.lessonComplete + (post === 1 ? XP_AWARD.perfectQuiz : 0))
+        // The lesson card advertises an exact completion reward. Default to the
+        // base award for older callers that do not pass one.
+        const completionXp = xp ?? XP_AWARD.lessonComplete
+        get().awardXp(completionXp + (post === 1 ? XP_AWARD.perfectQuiz : 0))
         if (post === 1) set((s) => ({ counters: { ...s.counters, perfectQuizzes: s.counters.perfectQuizzes + 1 } }))
         bumpQuest(set, get, 'lessonComplete')
         checkBadges(set, get)

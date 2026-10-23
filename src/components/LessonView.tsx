@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { TOPIC_BY_ID } from '../content/topics.generated'
 import { gainLabel, learningGain, lessonFor, type LabLesson, type Question } from '../lib/lessons'
+import { XP } from '../lib/gamification'
 import { MASTERED_THRESHOLD, decayedMastery, masteryStage, STAGE_LABEL } from '../lib/mastery'
 import { useAppStore } from '../store/useAppStore'
 import { Btn, Meter, Panel, Pill, Ring, Tabs } from './ui'
@@ -40,6 +41,7 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
   const lesson = useMemo(() => lessonFor(topicId), [topicId])
   const mastery = useAppStore((s) => s.mastery)
   const lessons = useAppStore((s) => s.lessons)
+  const circuit = useAppStore((s) => s.circuit)
   const startLesson = useAppStore((s) => s.startLesson)
   const completeLesson = useAppStore((s) => s.completeLesson)
   const recordAnswer = useAppStore((s) => s.recordAnswer)
@@ -49,7 +51,6 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
   const [postScore, setPostScore] = useState<number | null>(null)
   const [stepsDone, setStepsDone] = useState<Set<number>>(new Set())
   const [done, setDone] = useState(false)
-  const [simVisited, setSimVisited] = useState(false)
 
   const progress = lessons[topicId]
   const m = decayedMastery(mastery[topicId], Date.now())
@@ -62,7 +63,6 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
     setPostScore(null)
     setDone(false)
     setStepsDone(new Set())
-    setSimVisited(false)
   }, [topicId, startLesson])
 
   if (!topic || !lesson) {
@@ -76,13 +76,20 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
   }
 
   const finishPost = (score: number) => {
+    // A posttest without a pretest would fabricate a gain of post - 0. Send the
+    // learner back instead of silently recording an invalid measurement.
+    if (preScore === null) {
+      setStage(2)
+      return
+    }
     setPostScore(score)
     setDone(true)
-    completeLesson(topicId, preScore ?? 0, score)
+    completeLesson(topicId, preScore, score, lesson.xp)
     setStage(6)
   }
 
   const gain = preScore !== null && postScore !== null ? learningGain(preScore, postScore) : null
+  const earnedXp = lesson.xp + (postScore === 1 ? XP.perfectQuiz : 0)
 
   return (
     <div className="stack gap-16 fade-in">
@@ -142,7 +149,7 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                   <div className="stat">
                     <div className="k">Reward</div>
                     <div className="v" style={{ fontSize: 18 }}>+{lesson.xp} XP</div>
-                    <div className="h">plus mastery updates</div>
+                    <div className="h">+{XP.correctAnswer}/answer · +{XP.perfectQuiz} perfect posttest</div>
                   </div>
                   <div className="stat">
                     <div className="k">Simulator</div>
@@ -211,15 +218,29 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                     they cost nothing.
                   </p>
                 </div>
-                <Quiz
-                  questions={lesson.pretest}
-                  onAnswer={(correct) => recordAnswer(topicId, correct)}
-                  onComplete={(score) => {
-                    setPreScore(score)
-                    setStage(3)
-                  }}
-                  nextLabel="Continue to procedure"
-                />
+                {preScore !== null ? (
+                  <div className="panel sunken" style={{ padding: 16 }}>
+                    <div className="row gap-10 wrap">
+                      <CheckCircle2 size={18} color="var(--green)" />
+                      <span className="small grow" style={{ fontWeight: 600 }}>
+                        Pretest recorded at {Math.round(preScore * 100)}%. It is locked so the posttest measures the same starting point.
+                      </span>
+                      <Btn variant="primary" onClick={() => setStage(3)}>
+                        Continue to procedure <ArrowRight size={13} />
+                      </Btn>
+                    </div>
+                  </div>
+                ) : (
+                  <Quiz
+                    questions={lesson.pretest}
+                    onAnswer={(correct) => recordAnswer(topicId, correct)}
+                    onComplete={(score) => {
+                      setPreScore(score)
+                      setStage(3)
+                    }}
+                    nextLabel="Continue to procedure"
+                  />
+                )}
               </div>
             </Panel>
           )}
@@ -284,10 +305,7 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                   <Btn
                     variant="primary"
                     icon={<Beaker size={13} />}
-                    onClick={() => {
-                      setSimVisited(true)
-                      setStage(4)
-                    }}
+                    onClick={() => setStage(4)}
                   >
                     Open the simulation
                   </Btn>
@@ -320,7 +338,7 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                 <Btn variant="ghost" icon={<ArrowLeft size={13} />} onClick={() => setStage(3)}>Back to procedure</Btn>
                 <div className="grow" />
                 <Btn variant="primary" onClick={() => setStage(5)}>
-                  {simVisited ? 'Take the posttest' : 'Skip to posttest'} <ArrowRight size={13} />
+                  Take the posttest <ArrowRight size={13} />
                 </Btn>
               </div>
             </div>
@@ -336,12 +354,27 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                     The gain is measured against your pretest, so this is the honest test of what changed.
                   </p>
                 </div>
-                <Quiz
-                  questions={lesson.posttest}
-                  onAnswer={(correct) => recordAnswer(topicId, correct)}
-                  onComplete={finishPost}
-                  nextLabel="See my learning gain"
-                />
+                {preScore === null ? (
+                  <div className="panel sunken" style={{ padding: 16 }}>
+                    <div className="stack gap-10">
+                      <span className="small" style={{ fontWeight: 600 }}>
+                        Take the pretest first so your learning gain has a real baseline.
+                      </span>
+                      <div className="row gap-8">
+                        <Btn variant="primary" onClick={() => setStage(2)} icon={<ArrowLeft size={13} />}>
+                          Go to pretest
+                        </Btn>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Quiz
+                    questions={lesson.posttest}
+                    onAnswer={(correct) => recordAnswer(topicId, correct)}
+                    onComplete={finishPost}
+                    nextLabel="See my learning gain"
+                  />
+                )}
               </div>
             </Panel>
           )}
@@ -355,7 +388,7 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                       <Trophy size={20} color="var(--amber)" />
                       <h2 className="display" style={{ fontSize: 22 }}>Lab complete</h2>
                       <div className="grow" />
-                      <Pill tone="green">+{lesson.xp} XP</Pill>
+                      <Pill tone="green">+{earnedXp} XP</Pill>
                     </div>
                     <div className="cols-4">
                       <div className="stat">
@@ -378,6 +411,9 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
                       </div>
                     </div>
                     <div className="panel sunken" style={{ padding: 14 }}>
+                      <p className="tiny dim" style={{ marginBottom: 6 }}>
+                        Hake gain = (posttest − pretest) / (1 − pretest). 70%+ is high, 30–70% medium, below 30% low.
+                      </p>
                       <p className="small muted" style={{ lineHeight: 1.6 }}>
                         {gain >= 0.7
                           ? 'That is a high gain — the lesson landed. Revisit this topic in a few days to keep the mastery from decaying.'
@@ -480,7 +516,7 @@ export function LessonView({ topicId, onOpenTopic, onBack }: { topicId: string; 
           </Panel>
 
           <TutorPanel
-            circuit={useAppStore.getState().circuit}
+            circuit={circuit}
             sim={null}
             topic={{ id: topic.id, title: topic.title, domainName: topic.domainName, levelName: topic.levelName }}
             mastery={m}

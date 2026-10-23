@@ -57,6 +57,17 @@ export const TEMPLATES: CircuitTemplate[] = [
     build: () => assemble(1, 'Superposition', [g('H', [0])]),
   },
   {
+    id: 'phase',
+    name: 'Phase wheel',
+    tagline: 'Probabilities stay put while the relative phase rotates.',
+    difficulty: 'starter',
+    topics: ['M-01', 'QI-02'],
+    // H prepares (|0> + |1>)/sqrt2; S adds a 90-degree relative phase, so the
+    // amplitudes become (1, i)/sqrt2. The histogram is unchanged, which is the
+    // whole point of an unobservable relative phase.
+    build: () => assemble(1, 'Phase wheel', [g('H', [0]), g('S', [0])]),
+  },
+  {
     id: 'bell',
     name: 'Bell pair',
     tagline: 'The simplest possible entanglement: two qubits, one shared fate.',
@@ -170,18 +181,22 @@ export const TEMPLATES: CircuitTemplate[] = [
     tagline: "The change of basis that powers Shor's algorithm.",
     difficulty: 'advanced',
     topics: ['A-04'],
-    // Textbook QFT written for a little-endian register: start at the most
-    // significant qubit (q2), halve the controlled phase each step, finish with
-    // the bit-reversal SWAP.
+    // Exact 3-qubit DFT in Qiskit's little-endian ordering. The bit-reversal
+    // SWAP comes first (matching QFTGate), then the H/controlled-phase ladder.
+    // Each controlled phase CP(theta) is built from CRZ(theta) plus an
+    // RZ(theta/2) on its control, which is CP(theta) up to a global phase.
     build: () =>
       assemble(3, 'QFT', [
-        g('H', [2]),
-        g('CRZ', [2, 1], [Math.PI / 2]),
-        g('H', [1]),
-        g('CRZ', [2, 0], [Math.PI / 4]),
-        g('CRZ', [1, 0], [Math.PI / 2]),
+        g('SWAP', [0, 2]),
         g('H', [0]),
-        g('SWAP', [2, 0]),
+        g('RZ', [1], [Math.PI / 4]),
+        g('CRZ', [1, 0], [Math.PI / 2]),
+        g('RZ', [2], [Math.PI / 8]),
+        g('CRZ', [2, 0], [Math.PI / 4]),
+        g('H', [1]),
+        g('RZ', [2], [Math.PI / 4]),
+        g('CRZ', [2, 1], [Math.PI / 2]),
+        g('H', [2]),
       ]),
   },
   {

@@ -3,7 +3,7 @@
  * gate list, so any correct construction passes. Failure shows per-check detail
  * that becomes the tutor's next hint.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   Check,
@@ -28,7 +28,7 @@ const DIFF_TONE = { starter: 'green', intermediate: 'amber', advanced: 'pink' } 
 
 export function Challenges({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
   const circuit = useAppStore((s) => s.circuit)
-  const loadTemplate = useAppStore((s) => s.loadTemplate)
+  const setCircuit = useAppStore((s) => s.setCircuit)
   const recordChallenge = useAppStore((s) => s.recordChallenge)
   const progress = useAppStore((s) => s.challenges)
   const toast = useAppStore((s) => s.toast)
@@ -44,6 +44,17 @@ export function Challenges({ onOpenTopic }: { onOpenTopic: (id: string) => void 
   const filtered = CHALLENGES.filter((c) => filter === 'all' || c.difficulty === filter)
   const solved = Object.values(progress).filter((p) => p.solved).length
   const earned = Object.values(progress).reduce((s, p) => s + (p.solved ? 1 : 0), 0)
+
+  // Each challenge opens on its own starter scaffold. The scaffold deliberately
+  // stops short of the answer, so re-entering the page can never leave a solved
+  // circuit in place and auto-pass the grader.
+  useEffect(() => {
+    const challenge = CHALLENGES.find((c) => c.id === activeId) ?? CHALLENGES[0]
+    setCircuit(challenge.scaffold())
+    setResult(null)
+    setHintLevel(0)
+    setShowLab(false)
+  }, [activeId, setCircuit])
 
   const stats = useMemo(
     () => ({
@@ -81,7 +92,7 @@ export function Challenges({ onOpenTopic }: { onOpenTopic: (id: string) => void 
   const reset = () => {
     setResult(null)
     setHintLevel(0)
-    if (active.start) loadTemplate(active.start)
+    setCircuit(active.scaffold())
   }
 
   return (
@@ -217,8 +228,13 @@ export function Challenges({ onOpenTopic }: { onOpenTopic: (id: string) => void 
                 <Btn icon={<CheckCircle2 size={13} />} onClick={check}>
                   Check my circuit
                 </Btn>
-                <Btn variant="ghost" icon={<RotateCcw size={13} />} onClick={reset}>
-                  Reset
+                <Btn
+                  variant="ghost"
+                  icon={<RotateCcw size={13} />}
+                  onClick={reset}
+                  title="Restore this challenge's starter scaffold"
+                >
+                  Reset scaffold
                 </Btn>
                 <span className="grow" />
                 {(attempts[active.id] ?? 0) > 0 && <span className="tiny dim">{attempts[active.id]} attempt(s) this session</span>}
@@ -234,7 +250,7 @@ export function Challenges({ onOpenTopic }: { onOpenTopic: (id: string) => void 
                 <span className="grow" />
                 <Btn size="sm" variant="ghost" onClick={() => setShowLab(false)}>Hide</Btn>
               </div>
-              <Composer embedded key={active.id} initialTemplate={active.start} />
+              <Composer embedded key={active.id} />
             </div>
           ) : (
             <Panel tight sunken>
