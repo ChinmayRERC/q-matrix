@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.env
+.env.*
+__pycache__
+.pytest_cache
+*.pyc
+vtu-hc-q-matrix
+.DS_Store
+tsconfig.app.tsbuildinfo

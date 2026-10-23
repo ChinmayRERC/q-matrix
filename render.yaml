@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: q-matrix
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NVIDIA_MODEL
+        value: nvidia/nemotron-3.5-lightning-30b-a3b
+      # Set this in the Render Dashboard (or via the Blueprint prompt).
+      # It is intentionally not committed; rotate any key that was shared.
+      - key: NVIDIA_API_KEY
+        sync: false

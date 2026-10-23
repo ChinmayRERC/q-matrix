@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+tsconfig.app.tsbuildinfo
+vtu-hc-q-matrix/

@@ -1,0 +1,182 @@
+import os
+
+import pytest
+from fastapi.testclient import TestClient
+
+from apps.api.main import app
+
+client = TestClient(app)
+
+
+def bell_circuit(shots=2000, seed=7):
+    return {
+        "circuit": {
+            "numQubits": 2,
+            "gates": [
+                {"kind": "H", "qubits": [0], "params": [], "column": 0},
+                {"kind": "CNOT", "qubits": [0, 1], "params": [], "column": 1},
+            ],
+        },
+        "shots": shots,
+        "seed": seed,
+    }
+
+
+def test_health_reports_fallback_without_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    body = client.get("/api/health").json()
+    assert body["status"] == "ok"
+    assert body["ai"] == "local-fallback"
+
+
+def test_health_prefers_nvidia_when_configured(monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
+    body = client.get("/api/health").json()
+    assert body["ai"] == "nvidia"
+    assert body["model"]
+
+
+def test_bell_state_probabilities():
+    response = client.post("/api/simulate", json=bell_circuit(shots=100))
+    assert response.status_code == 200
+    body = response.json()
+    p = body["probabilities"]
+    assert p[0] == pytest.approx(0.5)
+    assert p[3] == pytest.approx(0.5)
+    assert p[1] == pytest.approx(0.0)
+    assert p[2] == pytest.approx(0.0)
+    assert set(body["counts"]) <= {"00", "11"}
+
+
+def test_expected_probabilities_agreement():
+    payload = bell_circuit(shots=10)
+    payload["expected_probabilities"] = [0.5, 0.0, 0.0, 0.5]
+    body = client.post("/api/simulate", json=payload).json()
+    assert body["agrees"] is True
+    assert body["max_abs_diff"] < 1e-9
+
+
+def test_rotation_matches_closed_form():
+    # RY(pi/2) on |0> -> (|0> + |1>)/sqrt(2)
+    payload = {
+        "circuit": {
+            "numQubits": 1,
+            "gates": [{"kind": "RY", "qubits": [0], "params": [1.5707963267948966], "column": 0}],
+        },
+        "shots": 10,
+    }
+    body = client.post("/api/simulate", json=payload).json()
+    assert body["probabilities"][0] == pytest.approx(0.5, abs=1e-9)
+    assert body["probabilities"][1] == pytest.approx(0.5, abs=1e-9)
+
+
+def test_swap_test_probability():
+    payload = {
+        "circuit": {
+            "numQubits": 3,
+            "gates": [
+                {"kind": "X", "qubits": [1], "params": [], "column": 0},
+                {"kind": "H", "qubits": [2], "params": [], "column": 1},
+                {"kind": "H", "qubits": [0], "params": [], "column": 2},
+                {"kind": "CSWAP", "qubits": [0, 1, 2], "params": [], "column": 3},
+                {"kind": "H", "qubits": [0], "params": [], "column": 4},
+            ],
+        },
+        "shots": 10,
+    }
+    body = client.post("/api/simulate", json=payload).json()
+    p = body["probabilities"]
+    p0 = sum(prob for i, prob in enumerate(p) if not (i & 1))
+    assert p0 == pytest.approx(0.75, abs=1e-9)
+
+
+def test_conditional_gate_rejected():
+    payload = {
+        "circuit": {
+            "numQubits": 1,
+            "gates": [
+                {"kind": "M", "qubits": [0], "params": [], "column": 0},
+                {"kind": "X", "qubits": [0], "params": [], "column": 1, "condition": {"qubit": 0, "value": 1}},
+            ],
+        },
+        "shots": 10,
+    }
+    response = client.post("/api/simulate", json=payload)
+    assert response.status_code == 422
+
+
+def test_out_of_range_qubit_rejected():
+    payload = {
+        "circuit": {"numQubits": 1, "gates": [{"kind": "H", "qubits": [3], "params": [], "column": 0}]},
+        "shots": 10,
+    }
+    assert client.post("/api/simulate", json=payload).status_code == 422
+
+
+def test_tutor_falls_back_without_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    response = client.post(
+        "/api/ai/tutor",
+        json={
+            "question": "why does the hadamard create superposition?",
+            "mode": "explain",
+            "insights": [],
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "local"
+    assert "superposition" in body["text"].lower()
+    assert isinstance(body["suggestions"], list) and body["suggestions"]
+
+
+def test_tutor_debug_mode_surfaces_errors(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    response = client.post(
+        "/api/ai/tutor",
+        json={
+            "question": "",
+            "mode": "debug",
+            "insights": [
+                {"level": "error", "title": "Gate runs after a measurement", "detail": "The state is classical.", "fix": "Move the measurement last."}
+            ],
+        },
+    )
+    body = response.json()
+    assert "after a measurement" in body["text"]
+    assert "Move the measurement last." in body["text"]
+
+
+def test_tutor_rejects_overlong_question():
+    response = client.post("/api/ai/tutor", json={"question": "x" * 5000, "mode": "explain"})
+    assert response.status_code == 422
+
+
+def test_plan_is_grounded_and_actionable(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    response = client.post(
+        "/api/ai/plan",
+        json={
+            "name": "Ada",
+            "minutes": 20,
+            "mode": "guided",
+            "lessons_completed": 3,
+            "challenges_solved": 2,
+            "mastered": 1,
+            "topics": [
+                {"id": "QI-02", "title": "Entanglement", "level": "Beginner", "mastery": 0.42},
+                {"id": "QI-01", "title": "Superposition", "level": "Beginner", "mastery": 0.91},
+            ],
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "local"
+    assert len(body["steps"]) == 3
+    assert body["focus_topic"] == "QI-02"
+    assert {step["action"] for step in body["steps"]} == {"lesson", "challenge"}
+    assert "Ada" in body["headline"]
