@@ -188,7 +188,7 @@ describe('algorithms', () => {
 
   it('Bernstein-Vazirani recovers the hidden string 01', () => {
     const r = simulate(templateById('bernstein-vazirani')!.build())
-    // Hidden bits: q0 = 1, q1 = 0 -> index 1, i.e. "001" MSB-first.
+    // Hidden bits: q0 = 1, q1 = 0 -> index 1, i.e. |10> with q0 leftmost.
     expect(close(r.probabilities[1], 1, 1e-9)).toBe(true)
   })
 

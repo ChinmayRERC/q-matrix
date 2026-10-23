@@ -381,7 +381,7 @@ def simulate(request: SimulateRequest) -> dict[str, Any]:
             if r <= acc:
                 pick = i
                 break
-        # MSB-first key, matching the browser's bitString()
+        # Little-endian display key, matching the browser: q0 is leftmost.
         key = format(pick, f"0{n}b")[::-1]
         counts[key] = counts.get(key, 0) + 1
 
@@ -435,7 +435,7 @@ Rules:
 - Be a Socratic tutor: explain the idea, then ask one short question that checks understanding.
 - Keep answers under 180 words unless the learner explicitly asks for a derivation.
 - Never invent measurement probabilities, concurrence values, or gate counts. Use only the circuit facts supplied in the CONTEXT block. If a fact is missing, say what you would need to measure.
-- The simulator uses little-endian bit ordering: qubit 0 is the least significant bit of the basis index, and ket strings are printed MSB first.
+- The simulator uses little-endian bit ordering: qubit 0 is the least significant bit of the basis index, and display strings are little-endian with q0 leftmost.
 - If the learner's circuit has an error, name it plainly, explain why it breaks the physics, and give the smallest fix.
 - Match the learner's level. Avoid unexplained jargon; define a term the first time you use it.
 - Never output code fences full of a complete solution for an active challenge. Give the next step, not the answer.

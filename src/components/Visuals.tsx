@@ -133,7 +133,8 @@ export function Histogram({ sim, expected }: { sim: SimResult | null; expected?:
     <div className="stack gap-10">
       <div className="histo">
         {entries.map(([key, n]) => {
-          // counts are MSB-first strings; convert back to a basis index for expected values
+          // Counts are little-endian display strings (q0 leftmost); reverse them
+          // before treating the result as an integer basis index.
           const index = parseInt([...key].reverse().join(''), 2)
           const exp = expected?.[index]
           const share = n / total
