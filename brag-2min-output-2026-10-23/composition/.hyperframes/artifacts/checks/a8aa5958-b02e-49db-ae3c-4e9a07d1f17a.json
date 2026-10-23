@@ -1,0 +1,1020 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 24,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s0-bg\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s0-bg",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s0-bg\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s0-head\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s0-head",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s0-head\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s0-sub\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s0-sub",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s0-sub\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s0-cardwrap\"> is a timeline element that contains nested <img id=\"s0-card\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s0-cardwrap",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s0-cardwrap\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s1-shot\"> is a timeline element that contains nested <img id=\"s1-img\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s1-shot",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s1-shot\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s2-shot\"> is a timeline element that contains nested <img id=\"s2-img\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s2-shot",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s2-shot\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s2-cap\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s2-cap",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s2-cap\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s3-shot\"> is a timeline element that contains nested <img id=\"s3-img\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s3-shot",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s3-shot\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s4-bg\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4-bg",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s4-bg\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s4-ideal\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4-ideal",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s4-ideal\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s4-noisy\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4-noisy",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s4-noisy\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s4-metrics\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4-metrics",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s4-metrics\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s5-bg\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s5-bg",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s5-bg\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s5-q\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s5-q",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s5-q\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s5-answer\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s5-answer",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s5-answer\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s6-shot\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s6-shot",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s6-shot\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s6-cap\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s6-cap",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s6-cap\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s7-shot\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s7-shot",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s7-shot\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s7-cap\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s7-cap",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s7-cap\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s8-bg\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s8-bg",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s8-bg\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s8-modal\"> is a timeline element that contains nested <img>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s8-modal",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s8-modal\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s9-bg\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s9-bg",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s9-bg\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s9-list\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s9-list",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s9-list\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s10-bg\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s10-bg",
+        "dataAttributes": {},
+        "sourceFile": "/Users/chinmaya/Documents/Default Project/brag-2min-output-2026-10-23/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s10-bg\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 13,
+    "findings": [
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 5.976,
+        "selector": "#s1-lead",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 124,
+          "top": 858,
+          "right": 426.41,
+          "bottom": 923,
+          "width": 302.41,
+          "height": 65
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "Learn · Build ·",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-start": "2.7",
+          "data-duration": "8.5",
+          "data-layout-allow-overlap": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 124,
+          "y": 858,
+          "width": 302.41,
+          "height": 65
+        },
+        "firstSeen": 5.976,
+        "lastSeen": 5.976,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          5.976
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 5.976,
+        "selector": "#s1-lead > span:nth-of-type(1)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 426.41,
+          "top": 858,
+          "right": 625.7,
+          "bottom": 923,
+          "width": 199.3,
+          "height": 65
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "Collapse",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 426.41,
+          "y": 858,
+          "width": 199.3,
+          "height": 65
+        },
+        "firstSeen": 5.976,
+        "lastSeen": 5.976,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          5.976
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 5.976,
+        "selector": "#s1-chip1",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 170,
+          "top": 828,
+          "right": 700.09,
+          "bottom": 861,
+          "width": 530.09,
+          "height": 33
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "176 topics · 20 domains · 8 learning paths",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-start": "3.07",
+          "data-duration": "8.13"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 170,
+          "y": 828,
+          "width": 530.09,
+          "height": 33
+        },
+        "firstSeen": 5.976,
+        "lastSeen": 5.976,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          5.976
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 5.976,
+        "selector": "#s1-chip2",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 793.09,
+          "top": 828,
+          "right": 1146.41,
+          "bottom": 861,
+          "width": 353.31,
+          "height": 33
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "13 templates · 11 challenges",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-start": "4.19",
+          "data-duration": "7.01"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 793.09,
+          "y": 828,
+          "width": 353.31,
+          "height": 33
+        },
+        "firstSeen": 5.976,
+        "lastSeen": 5.976,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          5.976
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 17.927,
+        "selector": "#s2-cap > div:nth-of-type(1)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 152,
+          "top": 785.22,
+          "right": 489.13,
+          "bottom": 822.22,
+          "width": 337.13,
+          "height": 37
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "LEARNING PATHS",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 152,
+          "y": 785.22,
+          "width": 337.13,
+          "height": 37
+        },
+        "firstSeen": 17.927,
+        "lastSeen": 17.927,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          17.927
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 17.927,
+        "selector": "#s2-cap > div:nth-of-type(2)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 152,
+          "top": 826.22,
+          "right": 599.05,
+          "bottom": 913.22,
+          "width": 447.05,
+          "height": 87
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "Eight routes to",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 152,
+          "y": 826.22,
+          "width": 447.05,
+          "height": 87
+        },
+        "firstSeen": 17.927,
+        "lastSeen": 17.927,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          17.927
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 17.927,
+        "selector": "#s2-cap > div:nth-of-type(2) > b:nth-of-type(1)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 599.05,
+          "top": 826.22,
+          "right": 1105.36,
+          "bottom": 913.22,
+          "width": 506.31,
+          "height": 87
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "quantum fluency",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 599.05,
+          "y": 826.22,
+          "width": 506.31,
+          "height": 87
+        },
+        "firstSeen": 17.927,
+        "lastSeen": 17.927,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          17.927
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 17.927,
+        "selector": "#s2-cap > div:nth-of-type(3)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 152,
+          "top": 919.41,
+          "right": 964.92,
+          "bottom": 950.41,
+          "width": 812.92,
+          "height": 31
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "prerequisite validation · seven-stage Virtual Lab · BKT mastery tracking",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 152,
+          "y": 919.41,
+          "width": 812.92,
+          "height": 31
+        },
+        "firstSeen": 17.927,
+        "lastSeen": 17.927,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          17.927
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 29.878,
+        "selector": "#s3-cap",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 149,
+          "top": 967.5,
+          "right": 955.39,
+          "bottom": 1004.5,
+          "width": 806.39,
+          "height": 37
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "bell template · 2 gates · depth 2 · 1 entangling",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-start": "22.8",
+          "data-duration": "9.56",
+          "data-layout-allow-overlap": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 149,
+          "y": 967.5,
+          "width": 806.39,
+          "height": 37
+        },
+        "firstSeen": 29.878,
+        "lastSeen": 29.878,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          29.878
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 65.731,
+        "selector": "#s6-cap > div:nth-of-type(1)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 152,
+          "top": 785.22,
+          "right": 344.64,
+          "bottom": 822.22,
+          "width": 192.64,
+          "height": 37
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "PRACTICE",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 152,
+          "y": 785.22,
+          "width": 192.64,
+          "height": 37
+        },
+        "firstSeen": 65.731,
+        "lastSeen": 65.731,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          65.731
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 65.731,
+        "selector": "#s6-cap > div:nth-of-type(2)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 152,
+          "top": 826.22,
+          "right": 631.23,
+          "bottom": 913.22,
+          "width": 479.23,
+          "height": 87
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "13 templates · 11",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 152,
+          "y": 826.22,
+          "width": 479.23,
+          "height": 87
+        },
+        "firstSeen": 65.731,
+        "lastSeen": 65.731,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          65.731
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 65.731,
+        "selector": "#s6-cap > div:nth-of-type(2) > b:nth-of-type(1)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 631.23,
+          "top": 826.22,
+          "right": 957.77,
+          "bottom": 913.22,
+          "width": 326.53,
+          "height": 87
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "challenges",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 631.23,
+          "y": 826.22,
+          "width": 326.53,
+          "height": 87
+        },
+        "firstSeen": 65.731,
+        "lastSeen": 65.731,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          65.731
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 65.731,
+        "selector": "#s6-cap > div:nth-of-type(3)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 152,
+          "top": 919.41,
+          "right": 920.25,
+          "bottom": 950.41,
+          "width": 768.25,
+          "height": 31
+        },
+        "containerSelector": "#s7-scrim",
+        "text": "auto-graded · scaffolds, never solutions · 12 badges · XP and streaks",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 152,
+          "y": 919.41,
+          "width": 768.25,
+          "height": 31
+        },
+        "firstSeen": 65.731,
+        "lastSeen": 65.731,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          65.731
+        ]
+      }
+    ],
+    "duration": 107.56,
+    "samples": [
+      5.976,
+      17.927,
+      29.878,
+      41.829,
+      53.78,
+      65.731,
+      77.682,
+      89.633,
+      101.584
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 13,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      5.976,
+      29.878,
+      53.78,
+      77.682,
+      101.584
+    ],
+    "checked": 18,
+    "passed": 18
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 5,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "first_frame_empty",
+        "severity": "warning",
+        "message": "Frame 0 shows only the background, and the first frame is the thumbnail on social players: have the title or key image already on screen at 0 s instead of entering from nothing; see references/review.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 11.13 s (35.02–46.15 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 35.015,
+        "seconds": 11.133,
+        "floorSeconds": 3,
+        "until": 46.148
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 10.05 s (49.02–59.08 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 49.022,
+        "seconds": 10.055,
+        "floorSeconds": 3,
+        "until": 59.077
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 12.57 s (82.24–94.81 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 82.241,
+        "seconds": 12.57,
+        "floorSeconds": 3,
+        "until": 94.811
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 6.64 s (96.61–103.25 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 96.606,
+        "seconds": 6.644,
+        "floorSeconds": 3,
+        "until": 103.25
+      }
+    ],
+    "enabled": true,
+    "step": 0.1799999999999926,
+    "samples": 599
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

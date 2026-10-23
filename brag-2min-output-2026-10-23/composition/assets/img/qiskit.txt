@@ -1,0 +1,12 @@
+import math
+from qiskit import QuantumCircuit
+
+qc = QuantumCircuit(2, 2)
+q = qc.qubits
+
+qc.h(q[0])
+qc.cx(q[0], q[1])
+
+from qiskit.quantum_info import Statevector
+
+print(Statevector.from_instruction(qc))

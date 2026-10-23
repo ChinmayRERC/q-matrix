@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: 'Manrope'; src: url('assets/fonts/Manrope-500-latin.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: block; }
+      @font-face { font-family: 'Manrope'; src: url('assets/fonts/Manrope-700-latin.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: block; }
+      @font-face { font-family: 'Manrope'; src: url('assets/fonts/Manrope-800-latin.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: block; }
+      @font-face { font-family: 'DM Sans'; src: url('assets/fonts/DMSans-400-latin.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: block; }
+      @font-face { font-family: 'DM Sans'; src: url('assets/fonts/DMSans-600-latin.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: block; }
+      @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-500-latin.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: block; }
+      :root {
+        --bg-0: #04050c;
+        --text: #eef1ff;
+        --muted: #9aa3c0;
+        --dim: #8b96b8;
+        --violet: #9b7cff;
+        --violet-deep: #6b47ff;
+        --cyan: #62e0f2;
+        --green: #5ee2a8;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg-0); }
+      .fullbleed { position: absolute; inset: 0; overflow: hidden; }
+      .fullbleed img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+      .bg { position: absolute; inset: 0; background: radial-gradient(1200px 720px at 50% 40%, rgba(107,71,255,.22), transparent 64%), linear-gradient(180deg, #04050c, #070a15); }
+      .title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 72px; letter-spacing: -0.03em; line-height: 1.05; }
+      .body  { font-size: 30px; line-height: 1.5; color: var(--muted); }
+      .mono  { font-family: 'JetBrains Mono', monospace; font-size: 24px; letter-spacing: 0.18em; color: var(--violet); }
+      .caption { position: absolute; left: 120px; bottom: 100px; width: 1680px; padding: 24px 32px; border-radius: 18px; background: #070a15; }
+      .caption .kicker { font-family: 'JetBrains Mono', monospace; font-size: 28px; letter-spacing: 0.26em; color: var(--violet); margin-bottom: 14px; }
+      .caption .headline { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 64px; letter-spacing: -0.03em; line-height: 1.05; }
+      .caption .headline b { color: var(--violet); }
+      .caption .sub { font-size: 28px; color: var(--muted); margin-top: 12px; line-height: 1.45; }
+      .brand { position: absolute; left: 96px; top: 78px; display: flex; align-items: center; gap: 20px; }
+      .brand img { width: 60px; height: 60px; border-radius: 16px; }
+      .chip-row { position: absolute; left: 120px; bottom: 200px; display: flex; gap: 18px; flex-wrap: wrap; }
+      .chip { height: 70px; padding: 0 24px; border-radius: 16px; background: rgba(11,15,31,.82); border: 1px solid rgba(255,255,255,.14); border-left: 4px solid var(--violet); display: flex; align-items: center; font-size: 30px; font-weight: 600; color: var(--text); white-space: nowrap; }
+      .chip .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px rgba(98,224,242,.9); margin-right: 12px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="107.56" data-width="1920" data-height="1080">
+
+      <!-- narration audio -->
+      <audio id="narr" data-start="0" data-duration="107.56" data-track-index="0" data-volume="1.0" src="assets/narration.wav"></audio>
+
+      <!-- ===== Scene 0: Hook (0.0-2.6) ===== -->
+      <div id="s0-bg" class="clip fullbleed" data-start="0" data-duration="2.6" data-layout-allow-overflow>
+        <div class="bg"></div>
+      </div>
+      <div class="brand">
+        <img id="s0-mark" class="clip" data-start="0" data-duration="2.6" src="assets/img/brand-mark.png" alt="Q-matrix" />
+        <img id="s0-word" class="clip" data-start="0" data-duration="2.6" src="assets/img/wordmark-name.png" alt="Q-matrix" style="width:280px;height:90px;object-fit:contain" />
+      </div>
+      <div id="s0-head" class="clip" data-start="0" data-duration="2.6" style="position:absolute;left:96px;top:280px;width:1420px" data-layout-allow-overlap>
+        <div class="title">You can't learn qubits from slides.</div>
+      </div>
+      <div id="s0-sub" class="clip" data-start="0.4" data-duration="2.2" style="position:absolute;left:100px;top:520px;width:1180px" data-layout-allow-overlap>
+        <div class="body">176 topics · workbench · tutor</div>
+      </div>
+      <div id="s0-cardwrap" class="clip" data-start="1.4" data-duration="1.2" style="position:absolute;left:96px;bottom:0;width:1728px;height:352px;overflow:hidden;border-radius:26px 26px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:0;background:#070a15" data-layout-allow-overflow>
+        <img id="s0-card" src="assets/img/02-dashboard-hero.png" alt="dashboard" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block" />
+      </div>
+
+      <!-- ===== Scene 1: Dashboard (2.6-11.2) ===== -->
+      <div id="s1-shot" class="clip fullbleed" data-start="2.6" data-duration="8.6" data-layout-allow-overflow>
+        <img id="s1-img" src="assets/img/01-dashboard.png" alt="dashboard" />
+      </div>
+      <div id="s1-scrim" class="clip" data-start="2.6" data-duration="8.6" style="position:absolute;left:0;right:0;bottom:0;height:420px;background:linear-gradient(180deg,rgba(4,5,12,0),rgba(4,5,12,.96) 70%)" data-layout-ignore></div>
+      <div id="s1-lead" class="clip" data-start="2.7" data-duration="8.5" style="position:absolute;left:100px;top:846px;font-family:'Manrope',sans-serif;font-weight:800;font-size:48px;letter-spacing:-.02em;padding:12px 24px;border-radius:14px;background:#070a15;color:#ffffff" data-layout-allow-overlap>
+        Learn · Build · <span style="color:var(--violet)">Collapse</span>
+      </div>
+      <div class="chip-row" data-layout-allow-overlap>
+        <div id="s1-chip1" class="clip chip" data-start="3.07" data-duration="8.13"><span class="dot"></span>176 topics · 20 domains · 8 learning paths</div>
+        <div id="s1-chip2" class="clip chip" data-start="4.19" data-duration="7.01"><span class="dot"></span>13 templates · 11 challenges</div>
+      </div>
+
+      <!-- ===== Scene 2: Paths (11.2-22.0) ===== -->
+      <div id="s2-shot" class="clip fullbleed" data-start="11.2" data-duration="10.8" data-layout-allow-overflow>
+        <img id="s2-img" src="assets/img/15-paths.png" alt="learning paths" />
+      </div>
+      <div id="s2-scrim" class="clip" data-start="11.2" data-duration="10.8" style="position:absolute;left:0;right:0;bottom:0;height:320px;background:linear-gradient(180deg,rgba(4,5,12,0),rgba(4,5,12,.95) 70%)" data-layout-ignore></div>
+      <div id="s2-cap" class="clip caption" data-start="11.6" data-duration="10.4" data-layout-allow-overlap>
+        <div class="kicker">LEARNING PATHS</div>
+        <div class="headline">Eight routes to <b>quantum fluency</b></div>
+        <div class="sub">prerequisite validation · seven-stage Virtual Lab · BKT mastery tracking</div>
+      </div>
+
+      <!-- ===== Scene 3: Workbench (22.4-32.36) ===== -->
+      <div id="s3-shot" class="clip fullbleed" data-start="22.4" data-duration="9.96" data-layout-allow-overflow>
+        <img id="s3-img" src="assets/img/04-workbench.png" alt="workbench" />
+      </div>
+      <div id="s3-scrim" class="clip" data-layout-ignore style="position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(180deg,rgba(4,5,12,0),rgba(4,5,12,.9) 70%)"></div>
+      <div id="s3-cap" class="clip" data-start="22.8" data-duration="9.56" style="position:absolute;left:100px;top:952px;height:68px;padding:0 24px;border-radius:14px;background:#070a15;border:1px solid rgba(255,255,255,.14);display:flex;color:#ffffff;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:28px;color:#eef1ff" data-layout-allow-overlap>
+        <span style="width:10px;height:10px;border-radius:50%;background:#5ee2a8;box-shadow:0 0 12px rgba(94,226,168,.9)"></span>bell template · 2 gates · depth 2 · 1 entangling
+      </div>
+
+      <!-- ===== Scene 4: Results (32.76-46.28) ===== -->
+      <div id="s4-bg" class="clip fullbleed" data-start="32.76" data-duration="13.52" data-layout-allow-overflow>
+        <div class="bg"></div>
+      </div>
+      <div id="s4-label" class="clip" data-start="33.16" data-duration="13.12" style="position:absolute;left:180px;top:92px;font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:.26em;color:var(--violet)" data-layout-allow-overlap>MEASUREMENT</div>
+      <div id="s4-h" class="clip" data-start="33.16" data-duration="13.12" style="position:absolute;left:180px;top:140px;font-family:'Manrope',sans-serif;font-weight:800;font-size:78px;letter-spacing:-.035em" data-layout-allow-overlap>
+        |00&#10217; 50.0% &nbsp; |11&#10217; 50.0%
+      </div>
+      <div id="s4-sub" class="clip" data-start="33.22" data-duration="13.06" style="position:absolute;left:182px;top:250px;font-size:28px;color:var(--muted)" data-layout-allow-overlap>
+        8,192 shots · ideal
+      </div>
+      <div id="s4-ideal" class="clip" data-start="33.16" data-duration="13.12" style="position:absolute;left:180px;top:312px;width:1560px;border-radius:18px;overflow:hidden" data-layout-allow-overlap>
+        <img src="assets/img/09-measure-run.png" alt="ideal" style="display:block;width:1560px" />
+      </div>
+      <div id="s4-noisy" class="clip" data-start="33.16" data-duration="13.12" style="position:absolute;left:180px;top:296px;width:1560px;border-radius:18px;overflow:hidden;opacity:0" data-layout-allow-overlap>
+        <img src="assets/img/10-measure-noisy.png" alt="noisy" style="display:block;width:1560px" />
+      </div>
+      <div id="s4-metrics" class="clip" data-start="34.26" data-duration="12.02" style="position:absolute;left:438px;top:700px;width:1043px;border-radius:16px;overflow:hidden" data-layout-allow-overlap>
+        <img src="assets/img/19-metrics.png" alt="metrics" style="display:block;width:1043px" />
+      </div>
+
+      <!-- ===== Scene 5: Chinnu (46.68-59.08) ===== -->
+      <div id="s5-bg" class="clip fullbleed" data-start="46.68" data-duration="12.4" data-layout-allow-overflow>
+        <div class="bg"></div>
+      </div>
+      <div id="s5-lyou" class="clip" data-start="47.21" data-duration="11.87" style="position:absolute;left:140px;top:196px;font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:.26em;color:var(--violet)" data-layout-allow-overlap>YOU</div>
+      <div id="s5-q" class="clip" data-start="47.21" data-duration="11.87" style="position:absolute;left:140px;top:232px;width:644px;border-radius:16px;overflow:hidden" data-layout-allow-overlap>
+        <img src="assets/img/21-chinnu-question.png" alt="question" style="display:block;width:644px" />
+      </div>
+      <div id="s5-title" class="clip" data-start="47.43" data-duration="11.65" style="position:absolute;left:140px;top:384px;font-family:'Manrope',sans-serif;font-weight:800;font-size:50px;letter-spacing:-.03em;padding:12px 24px;border-radius:14px;background:#070a15;color:#ffffff" data-layout-allow-overlap>
+        Chinnu answers from <span style="color:var(--violet)">your circuit</span>
+      </div>
+      <div id="s5-sub" class="clip" data-start="47.58" data-duration="11.5" style="position:absolute;left:142px;top:456px;width:640px;font-size:28px;line-height:1.45;color:var(--muted)" data-layout-allow-overlap>
+        Socratic tutor · grounded in this circuit
+      </div>
+      <div id="s5-note" class="clip" data-start="47.98" data-duration="11.1" style="position:absolute;left:142px;top:590px;width:660px;padding:22px 26px;border-radius:16px;background:rgba(11,15,31,.78);border:1px solid rgba(255,255,255,.13);border-left:4px solid var(--cyan);font-size:28px;line-height:1.4;color:#dfe3f5" data-layout-allow-overlap>
+        Circuit, state and analysis — sent server-side.
+      </div>
+      <div id="s5-lchinnu" class="clip" data-start="47.98" data-duration="11.1" style="position:absolute;left:986px;top:70px;font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:.26em;color:var(--violet)" data-layout-allow-overlap>CHINNU</div>
+      <div id="s5-answer" class="clip" data-start="48.32" data-duration="10.76" style="position:absolute;left:986px;top:104px;width:708px;border-radius:18px;overflow:hidden" data-layout-allow-overlap>
+        <img src="assets/img/22-chinnu-bubble.png" alt="answer" style="display:block;width:708px" />
+      </div>
+
+      <!-- ===== Scene 6: Templates + Challenges (59.48-71.36) ===== -->
+      <div id="s6-shot" class="clip fullbleed" data-start="59.48" data-duration="11.88" data-layout-allow-overflow>
+        <img src="assets/img/16-challenges.png" alt="challenges" />
+      </div>
+      <div id="s6-scrim" class="clip" data-layout-ignore style="position:absolute;left:0;right:0;bottom:0;height:320px;background:linear-gradient(180deg,rgba(4,5,12,0),rgba(4,5,12,.95) 70%)"></div>
+      <div id="s6-cap" class="clip caption" data-start="59.88" data-duration="11.48" data-layout-allow-overlap>
+        <div class="kicker">PRACTICE</div>
+        <div class="headline">13 templates · 11 <b>challenges</b></div>
+        <div class="sub">auto-graded · scaffolds, never solutions · 12 badges · XP and streaks</div>
+      </div>
+
+      <!-- ===== Scene 7: Progress (71.76-80.4) ===== -->
+      <div id="s7-shot" class="clip fullbleed" data-start="71.76" data-duration="8.64" data-layout-allow-overflow>
+        <img src="assets/img/18-progress.png" alt="progress" />
+      </div>
+      <div id="s7-scrim" class="clip" data-layout-ignore style="position:absolute;left:0;right:0;bottom:0;height:320px;background:linear-gradient(180deg,rgba(4,5,12,0),rgba(4,5,12,.95) 70%)"></div>
+      <div id="s7-cap" class="clip caption" data-start="72.16" data-duration="8.24" data-layout-allow-overlap data-layout-ignore>
+        <div class="kicker">PROGRESS &amp; DATA</div>
+        <div class="headline">Hake learning gain · <b>mastery map</b></div>
+        <div class="sub">CSV / JSON export for educators · no database required</div>
+      </div>
+
+      <!-- ===== Scene 8: Export (80.8-94.84) ===== -->
+      <div id="s8-bg" class="clip fullbleed" data-start="80.8" data-duration="14.04" data-layout-allow-overflow>
+        <div class="bg"></div>
+      </div>
+      <div id="s8-modal" class="clip" data-start="81.2" data-duration="13.64" style="position:absolute;left:149px;top:104px;width:1622px;border-radius:20px;overflow:hidden" data-layout-allow-overlap>
+        <img src="assets/img/14-export-qiskit.png" alt="export" style="display:block;width:1622px" />
+      </div>
+      <div id="s8-cap" class="clip" data-start="81.5" data-duration="13.34" style="position:absolute;left:149px;top:936px;font-family:'Manrope',sans-serif;font-weight:800;font-size:50px;letter-spacing:-.03em;padding:12px 24px;border-radius:14px;background:#070a15;color:#ffffff" data-layout-allow-overlap>
+        Your circuit leaves as <span style="color:var(--violet)">runnable SDK code</span>.
+      </div>
+      <div id="s8-formats" class="clip" data-start="81.7" data-duration="13.14" style="position:absolute;left:151px;top:1006px;font-family:'JetBrains Mono',monospace;font-size:28px;color:var(--muted);padding:8px 16px;border-radius:10px;background:#070a15" data-layout-allow-overlap>
+        <span style="color:var(--cyan)">OpenQASM 2.0</span> · Qiskit · Cirq · PennyLane
+      </div>
+
+      <!-- ===== Scene 9: Verification (95.24-103.4) ===== -->
+      <div id="s9-bg" class="clip fullbleed" data-start="95.24" data-duration="8.16" data-layout-allow-overflow>
+        <div class="bg"></div>
+      </div>
+      <div id="s9-kicker" class="clip" data-start="95.64" data-duration="7.76" style="position:absolute;left:120px;top:120px;font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:.26em;color:var(--violet)" data-layout-allow-overlap>VERIFICATION</div>
+      <div id="s9-title" class="clip" data-start="95.64" data-duration="7.76" style="position:absolute;left:120px;top:160px;font-family:'Manrope',sans-serif;font-weight:800;font-size:64px;letter-spacing:-.03em;padding:12px 24px;border-radius:14px;background:#070a15;color:#ffffff" data-layout-allow-overlap>
+        147 automated checks · 28 oracle checks
+      </div>
+      <div id="s9-list" class="clip" data-start="96.04" data-duration="7.36" style="position:absolute;left:120px;top:300px;font-size:30px;line-height:1.7;color:var(--text)" data-layout-allow-overlap>
+        <div>120 Vitest (statevector, noise, feed-forward, QASM, exporters, mastery)</div>
+        <div>12 API tests against the independent NumPy oracle</div>
+        <div>15 Qiskit 2.5.2 reference-algorithm tests (Bell, GHZ, QFT, QPE, teleportation …)</div>
+        <div>28/28 NumPy oracle checks · TypeScript strict · production build clean</div>
+        <div style="margin-top:18px;color:var(--muted)">Browser engine is the fast path; FastAPI runs a deliberately independent NumPy implementation of the same contract.</div>
+      </div>
+
+      <!-- ===== Scene 10: Outro (103.8-107.56) ===== -->
+      <div id="s10-bg" class="clip fullbleed" data-start="103.8" data-duration="3.76" data-layout-allow-overflow>
+        <div class="bg"></div>
+      </div>
+      <img id="s10-mark" class="clip" data-start="104.0" data-duration="3.56" src="assets/img/brand-mark.png" alt="Q-matrix" style="position:absolute;left:894px;top:214px;width:132px;height:132px;border-radius:34px;box-shadow:0 0 70px rgba(155,124,255,.55)" />
+      <img id="s10-name" class="clip" data-start="104.2" data-duration="3.36" src="assets/img/wordmark-name.png" alt="Q-matrix" style="position:absolute;left:790px;top:386px;width:341px;height:110px;object-fit:contain" />
+      <img id="s10-tag" class="clip" data-start="104.4" data-duration="3.16" src="assets/img/wordmark-sub.png" alt="Quantum Space · Learn · Build · Collapse" style="position:absolute;left:577px;top:518px;width:766px;height:114px;object-fit:contain" />
+      <div id="s10-cta" class="clip" data-start="104.7" data-duration="2.86" style="position:absolute;left:0;top:664px;width:1920px;text-align:center;font-family:'Manrope',sans-serif;font-weight:800;font-size:62px;letter-spacing:-.035em" data-layout-allow-overlap>
+        <span style="color:var(--violet)">chinmayrerc.github.io/q-matrix</span>
+      </div>
+      <div id="s10-sub" class="clip" data-start="105.0" data-duration="2.56" style="position:absolute;left:0;top:760px;width:1920px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:28px;color:var(--muted)" data-layout-allow-overlap>
+        github.com/ChinmayRERC/q-matrix · VTU-QFF-HC-0024
+      </div>
+      <div id="s10-foot" class="clip" data-start="105.3" data-duration="2.26" style="position:absolute;left:0;top:966px;width:1920px;text-align:center;font-size:28px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)" data-layout-allow-overlap>
+        Qiskit Fall Fest 2026 · Quantum Space
+      </div>
+
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      // Scene 0
+      tl.fromTo("#s0-mark", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 0);
+      tl.fromTo("#s0-word", { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 0);
+      tl.fromTo("#s0-head", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0);
+      tl.fromTo("#s0-sub", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.4);
+      tl.fromTo("#s0-card", { opacity: 0, y: 86, filter: "blur(16px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.9, ease: "power3.out" }, 1.4);
+      // Scene 1
+      tl.fromTo("#s1-img", { scale: 1, transformOrigin: "56% 22%" }, { scale: 1.25, xPercent: -4, yPercent: -3, duration: 8.6, ease: "none" }, 2.6);
+      tl.fromTo("#s1-lead", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.7);
+      tl.fromTo("#s1-chip1", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 3.07);
+      tl.fromTo("#s1-chip2", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.19);
+      // Scene 2
+      tl.fromTo("#s2-img", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.2, xPercent: 5, yPercent: -4, duration: 10.8, ease: "none" }, 11.2);
+      tl.fromTo("#s2-cap", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 11.6);
+      // Scene 3
+      tl.fromTo("#s3-img", { scale: 1, transformOrigin: "52.8% 21.3%" }, { scale: 1.2, xPercent: -3, yPercent: 2, duration: 9.96, ease: "none" }, 22.4);
+      tl.fromTo("#s3-cap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 22.8);
+      // Scene 4
+      tl.fromTo("#s4-h", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 33.16);
+      tl.fromTo("#s4-sub", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 33.22);
+      tl.fromTo("#s4-ideal", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 33.16);
+      tl.fromTo("#s4-metrics", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 34.26);
+      tl.fromTo("#s4-noisy", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 34.5);
+      // Scene 5
+      tl.fromTo("#s5-lyou", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 47.21);
+      tl.fromTo("#s5-q", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 47.21);
+      tl.fromTo("#s5-title", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 47.43);
+      tl.fromTo("#s5-sub", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 47.58);
+      tl.fromTo("#s5-note", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 47.98);
+      tl.fromTo("#s5-lchinnu", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 47.98);
+      tl.fromTo("#s5-answer", { opacity: 0, y: 30, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, 48.32);
+      // Scene 6
+      tl.fromTo("#s6-shot img", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.2, xPercent: 4, yPercent: -3, duration: 11.88, ease: "none" }, 59.48);
+      tl.fromTo("#s6-cap", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 59.88);
+      // Scene 7
+      tl.fromTo("#s7-shot img", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.2, xPercent: -4, yPercent: 3, duration: 8.64, ease: "none" }, 71.76);
+      tl.fromTo("#s7-cap", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 72.16);
+      // Scene 8
+      tl.fromTo("#s8-modal", { opacity: 0, scale: 0.96, transformOrigin: "50% 40%" }, { opacity: 1, scale: 1, duration: 0.55, ease: "power3.out" }, 81.2);
+      tl.fromTo("#s8-cap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 81.5);
+      tl.fromTo("#s8-formats", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 81.7);
+      // Scene 9
+      tl.fromTo("#s9-kicker", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 95.64);
+      tl.fromTo("#s9-title", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 95.64);
+      tl.fromTo("#s9-list", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 96.04);
+      // Scene 10
+      tl.fromTo("#s10-mark", { opacity: 0, scale: 0.72, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.5)" }, 104.0);
+      tl.fromTo("#s10-name", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 104.2);
+      tl.fromTo("#s10-tag", { opacity: 0, y: 14 }, { opacity: 0.92, y: 0, duration: 0.5, ease: "power3.out" }, 104.4);
+      tl.fromTo("#s10-cta", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 104.7);
+      tl.fromTo("#s10-sub", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 105.0);
+      tl.fromTo("#s10-foot", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 105.3);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

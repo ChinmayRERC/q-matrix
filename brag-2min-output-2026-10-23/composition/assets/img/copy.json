@@ -1,0 +1,26 @@
+{
+  "dashboardHero": [
+    "Level 1 · Observer",
+    "1 day streak",
+    "START HERE",
+    "The universe is undecided.",
+    "Collapse it, Explorer.",
+    "Start with a seven-stage Virtual Lab, then build the same circuit by hand in the workbench. Every answer updates your mastery model.",
+    "Start here: Superposition and measurement",
+    "Open the Galaxy",
+    "Challenges",
+    "0 XP",
+    "LV 1",
+    "60 XP to next",
+    "Observer"
+  ],
+  "board": "Circuit grid, 2 qubits. Use arrow keys to move the cursor. | q0 | |0⟩ | q1 | |0⟩ | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | H",
+  "state": "State | Live statevector after every gate | Amplitudes | Probabilities | Q-sphere | 2 qubits | purity 1.000 | 0.71 | |00⟩ | 0.71 | |11⟩ | Bar height = |amplitude| · colour = phase (hue 0→360° = −π→π) | · showing the 2 largest of 4 basis states",
+  "measureBefore": "Measurement | Sampled shot histogram | |00⟩ | 50.6% | |11⟩ | 49.4% | 1,024 shots | · | 2 distinct outcomes",
+  "analysis": "Chinnu | Socratic tutor · grounded in this circuit | Explain | Hint | Debug | Next | N | Hi — I'm Chinnu. I can see the circuit you're building, so ask me why a gate behaves the way it does, or let me hunt for the bug. Pick a topic and we can go deeper. | Try one of the prompts below ↓ | Why is this state special? | Why does this gate create superposition? | Show me the state as amplitudes | What would happen on real hardware?",
+  "measureAfter": "Measurement | Sampled shot histogram | |11⟩ | 50.0% | |00⟩ | 50.0% | 8,192 shots | · | 2 distinct outcomes",
+  "measureNoisy": "Measurement | Sampled shot histogram | |00⟩ | 49.3% | |11⟩ | 47.4% | |10⟩ | 1.8% | |01⟩ | 1.5% | 8,192 shots | · | 4 distinct outcomes | noisy run",
+  "chinnu": "Chinnu | Socratic tutor · grounded in this circuit | NVIDIA | Explain | Hint | Debug | Next | Y | Why is this state special? | N | Hello! I'm Chinnu, your quantum-computing tutor. Let's look at your circuit. | You have two qubits. The first gate is a Hadamard on qubit 0, which puts that qubit into an equal superposition of 0 and 1. The second gate is a CNOT with qubit 0 as control and qubit 1 as target. When the control is 1, the target flips; when it's 0, the target stays unchanged. The combined effect creates the Bell state (|00⟩ + |11⟩)/√2. | This state is special because the two qubits are maximally entangled: knowing the state of one instantly tells you the state of the other, even if they are far apart. The \"dominant\" probabilities you see (|00⟩ 50 %, |11⟩ 50 %, |10⟩ 0 %) reflect that perfect correlation. | Question: If you measure qubit 0 and see it in state |1⟩, what can you say about qubit 1 *before* you look at it? | NVIDIA Nemotron · server-side | Why is this state special? | Why does this gate create superposition? | Show me the state as amplitudes | What would happen on real hardware?",
+  "exportQiskit": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c[2];\nh q[0];\ncx q[0],q[1];",
+  "exportModalText": "Export circuit | OpenQASM | Qiskit | Cirq | PennyLane | OPENQASM 2.0; | include \"qelib1.inc\"; | qreg q[2]; | creg c[2]; | h q[0]; | cx q[0],q[1]; | These exporters mirror the browser engine gate-for-gate. Run them with your own SDK install; the platform itself stays client-side. | Close | Copy"
+}

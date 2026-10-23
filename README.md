@@ -15,7 +15,7 @@
 | **Organisation** | [vtu-qiskit-fall-fest-2026](https://github.com/vtu-qiskit-fall-fest-2026) |
 | **Event** | VTU-QFF Hackathon — VTU-Qiskit Fall Fest 2026 |
 
-**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Demo video (24 s)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.0/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.0/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
+**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
 
 ---
 
@@ -586,9 +586,9 @@ git pull --rebase
 | Google Cirq | <https://quantumai.google/cirq> |
 | GitHub Documentation | <https://docs.github.com/> |
 | Live demo | <https://chinmayrerc.github.io/q-matrix/> |
-| Demo video (24 s) | [watch/download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.0/q-matrix-demo.mp4) · in-repo [`docs/q-matrix-demo.mp4`](./docs/q-matrix-demo.mp4) · poster [`docs/q-matrix-demo-poster.jpg`](./docs/q-matrix-demo-poster.jpg) |
+| Demo video (2 min) | [watch/download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · in-repo [`docs/q-matrix-demo.mp4`](./docs/q-matrix-demo.mp4) · poster [`docs/q-matrix-demo-poster.jpg`](./docs/q-matrix-demo-poster.jpg) |
 | API health | <https://q-matrix.onrender.com/api/health> |
-| Submission deck | [`submission/VTU-QFF-HC-0024.pptx`](./submission/VTU-QFF-HC-0024.pptx) · [download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.0/VTU-QFF-HC-0024.pptx) |
+| Submission deck | [`submission/VTU-QFF-HC-0024.pptx`](./submission/VTU-QFF-HC-0024.pptx) · [download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) |
 
 ---
 
