@@ -11,3 +11,4 @@ tsconfig.app.tsbuildinfo
 vtu-hc-q-matrix/
 
 .render-api-key
+.venv*/

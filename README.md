@@ -86,7 +86,7 @@ flowchart LR
   Proxy -. optional .-> Claude["Anthropic API"]
   Server --> Static["Built SPA from /dist<br/>same origin, no CORS"]
 
-  Qiskit["Qiskit 1.0+ algorithms<br/>qiskit/"] -. "reference implementations" .-> Oracle
+  Qiskit["Qiskit 1.0+ algorithms<br/>qiskit_ref/"] -. "reference implementations" .-> Oracle
 ```
 
 The browser engine is the fast path. The NumPy service is deliberately an *independent* implementation: when both are asked to simulate the same circuit, a disagreement exposes a bug in one of them. The UI surfaces that comparison in the workbench cross-check dialog.
@@ -196,14 +196,17 @@ To connect the static site to a deployed API, set the repository variable `VITE_
 
 ## Qiskit 1.0+ algorithms
 
-The [`qiskit/`](./qiskit) folder contains standalone reference implementations of the core algorithms used in the curriculum, targeting **Qiskit SDK 1.0+ / 2.x** with `StatevectorSampler` and the primitives API. Each module is runnable, and the test suite checks statevectors and measurement statistics against the same oracles used by the web app.
+The [`qiskit_ref/`](./qiskit_ref) folder contains standalone reference implementations of the core algorithms used in the curriculum, targeting **Qiskit SDK 1.0+ / 2.x** with `StatevectorSampler` and the primitives API. Each function returns a runnable `QuantumCircuit`, and the test suite checks statevectors and measurement statistics against the same oracles used by the web app.
 
 ```bash
-pip install -r qiskit/requirements.txt
-python -m pytest qiskit -q
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r qiskit_ref/requirements.txt
+python -m pytest qiskit_ref -q      # 15 tests
+python -m qiskit_ref.algorithms     # run the demo
 ```
 
-Planned modules: Bell/GHZ preparation, Deutsch–Jozsa, Bernstein–Vazirani, Grover, QFT and inverse QFT, phase estimation, teleportation with `if_test` feed-forward, and a noise-aware sampler example. See [`qiskit/README.md`](./qiskit/README.md) for conventions and expected output.
+Covered modules: Bell/GHZ preparation, Deutsch–Jozsa, Bernstein–Vazirani, Grover, QFT and inverse QFT (verified against `QFTGate` to 1e-12), phase estimation, teleportation with `if_test` feed-forward, and a noise-aware Bell experiment using Aer. See [`qiskit_ref/README.md`](./qiskit_ref/README.md) for conventions and expected output.
 
 ---
 
