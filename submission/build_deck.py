@@ -484,7 +484,7 @@ def main():
         hyperlink="https://chinmayrerc.github.io/q-matrix/",
     )
 
-    links = s.shapes.add_textbox(Inches(0.5), Inches(4.34), Inches(5.4), Inches(0.78))
+    links = s.shapes.add_textbox(Inches(0.5), Inches(4.02), Inches(5.4), Inches(1.06))
     tf = links.text_frame
     tf.clear()
     tf.word_wrap = True
@@ -499,14 +499,20 @@ def main():
     p2 = tf.add_paragraph()
     p2.space_after = Pt(1.5)
     r2 = p2.add_run()
-    r2.text = "API · https://q-matrix.onrender.com"
+    r2.text = "Demo video (24 s) · github.com/ChinmayRERC/q-matrix/blob/main/docs/q-matrix-demo.mp4"
     set_run(r2, size=8.0, color=DEEP)
-    r2.hyperlink.address = "https://q-matrix.onrender.com"
+    r2.hyperlink.address = "https://github.com/ChinmayRERC/q-matrix/blob/main/docs/q-matrix-demo.mp4"
     p3 = tf.add_paragraph()
+    p3.space_after = Pt(1.5)
     r3 = p3.add_run()
-    r3.text = f"Team code · {TEAM_CODE}"
-    set_run(r3, size=8.0, bold=True, color=PINK)
-    add_notes(s, "Public repo: https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix. Live demo: https://chinmayrerc.github.io/q-matrix/. API: https://q-matrix.onrender.com.")
+    r3.text = "API · https://q-matrix.onrender.com"
+    set_run(r3, size=8.0, color=DEEP)
+    r3.hyperlink.address = "https://q-matrix.onrender.com"
+    p4 = tf.add_paragraph()
+    r4 = p4.add_run()
+    r4.text = f"Team code · {TEAM_CODE}"
+    set_run(r4, size=8.0, bold=True, color=PINK)
+    add_notes(s, "Public repo: https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix. Live demo: https://chinmayrerc.github.io/q-matrix/. Demo video: https://github.com/ChinmayRERC/q-matrix/blob/main/docs/q-matrix-demo.mp4. API: https://q-matrix.onrender.com.")
 
     prs.save(str(OUTPUT))
     print(f"wrote {OUTPUT}")

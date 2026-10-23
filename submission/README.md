@@ -38,8 +38,19 @@ The figures are generated from real Qiskit/Aer runs:
 ## Live links
 
 - Demo: <https://chinmayrerc.github.io/q-matrix/>
+- Demo video (24 s): <https://github.com/ChinmayRERC/q-matrix/blob/main/docs/q-matrix-demo.mp4>
+- Poster frame: <https://github.com/ChinmayRERC/q-matrix/blob/main/docs/q-matrix-demo-poster.jpg>
 - Repository: <https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix>
 - API health: <https://q-matrix.onrender.com/api/health>
+
+## Demo video
+
+The 24-second video is rendered with Hyperframes from the live deployment — every frame is the real
+product, captured headlessly with Playwright (2× DPR), and scored against the bundled
+`happy-beats-business-moves-vol-12` bed.
+
+- Source: [`brag-output-2026-10-23-125055/`](../brag-output-2026-10-23-125055) — plan, brief, composition
+- Frames: `docs/q-matrix-demo.mp4`, poster `docs/q-matrix-demo-poster.jpg` (baked as frame 0)
 
 ## Data notes
 
