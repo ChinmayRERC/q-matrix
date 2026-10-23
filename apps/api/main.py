@@ -46,6 +46,9 @@ app.add_middleware(
         "http://127.0.0.1:4173",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        # Static GitHub Pages builds that point at this API with VITE_API_URL.
+        "https://chinmayrerc.github.io",
+        "https://vtu-qiskit-fall-fest-2026.github.io",
     ],
     allow_origin_regex=r"https://.*\.onrender\.com",
     allow_methods=["GET", "POST"],
