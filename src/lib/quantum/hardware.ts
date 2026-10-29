@@ -73,7 +73,7 @@ export const DEVICES: Record<Exclude<DeviceId, 'custom'>, DeviceProfile> = {
     physicalQubits: 400,
     connectivity: 'all-to-all',
     connectionNote: 'reconfigurable: atoms are moved, so no SWAP routing',
-    basis: ['rz', 'ry', 'cz'],
+    basis: ['rz', 'rx', 'ry', 'cz'],
     noise: { depolarizing: 0.004, amplitudeDamping: 0.002, readoutError: 0.006 },
     twoQubitNs: 1_000,
     readoutNs: 5_000,

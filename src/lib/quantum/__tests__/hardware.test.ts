@@ -3,6 +3,7 @@ import { addGate, emptyCircuit } from '../circuit'
 import {
   couplingDistance,
   couplingFor,
+  DEVICES,
   deviceNoise,
   evaluateHardware,
   formatDuration,
@@ -74,6 +75,14 @@ describe('hardware profiles', () => {
     expect(formatDuration(0.0001)).toBe('100 ns')
     expect(formatDuration(0.2)).toBe('200 µs')
     expect(formatDuration(2.5)).toBe('2.50 ms')
+  })
+
+  it('keeps a one-qubit basis Qiskit can transpile H into', () => {
+    // Without rx/sx, Qiskit cannot translate h and the generated script fails.
+    for (const device of Object.values(DEVICES)) {
+      if (device.id === 'ideal') continue // ideal falls back to Qiskit's default basis
+      expect(device.basis.some((g) => g === 'rx' || g === 'sx')).toBe(true)
+    }
   })
 })
 
