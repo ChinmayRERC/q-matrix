@@ -17,11 +17,18 @@ type View = 'amps' | 'probs' | 'sphere' | 'bloch'
 
 export function StatePanel({ sim }: { sim: SimResult | null }) {
   const [view, setView] = useState<View>('amps')
+  const [stepIndex, setStepIndex] = useState<number | null>(null)
   const single = (sim?.numQubits ?? 0) === 1
 
   if (!sim) {
     return <Empty icon={<Boxes size={18} />} title="No state yet" hint="Place a gate to see the statevector come alive." />
   }
+
+  // Null means "live": the fully simulated circuit. A number pins one snapshot
+  // from the first trajectory, clamped in case the circuit got shorter.
+  const active = stepIndex === null || sim.steps.length === 0 ? null : Math.min(stepIndex, sim.steps.length - 1)
+  const snapshot = active === null ? null : sim.steps[active]
+  const shown: SimResult = snapshot ? { ...sim, state: snapshot.state, probabilities: snapshot.probabilities } : sim
 
   const tabs: Array<{ id: View; label: string }> = [
     { id: 'amps', label: 'Amplitudes' },
@@ -36,15 +43,49 @@ export function StatePanel({ sim }: { sim: SimResult | null }) {
         <Tabs tabs={tabs} value={view} onChange={setView} />
         <div className="grow" />
         <span className="pill mono">{sim.numQubits} qubit{sim.numQubits > 1 ? 's' : ''}</span>
-        <span className="pill mono" title="Tr(ρ²) — 1 means a pure state">
-          purity {sim.purity.toFixed(3)}
-        </span>
+        {active === null ? (
+          <span className="pill mono" title="Tr(ρ²) — 1 means a pure state">
+            purity {sim.purity.toFixed(3)}
+          </span>
+        ) : (
+          <span className="pill mono" title="Showing the state after this gate, not the final result">
+            gate {active + 1}/{sim.steps.length}
+          </span>
+        )}
       </div>
 
-      {view === 'amps' && <AmplitudeBars sim={sim} />}
-      {view === 'probs' && <ProbabilityBars sim={sim} />}
-      {view === 'sphere' && <QSphere sim={sim} />}
-      {view === 'bloch' && <BlochSphere sim={sim} />}
+      {sim.steps.length > 0 && (
+        <div className="stack gap-6">
+          <div className="row gap-8">
+            <input
+              type="range"
+              min={1}
+              max={sim.steps.length}
+              step={1}
+              value={active === null ? sim.steps.length : active + 1}
+              onChange={(e) => setStepIndex(Number(e.target.value) - 1)}
+              aria-label="Show the state after a gate"
+              style={{ flex: 1, minWidth: 0 }}
+            />
+          </div>
+          <div className="row gap-6 wrap">
+            <span className="tiny dim">
+              {active === null ? 'final state · drag to replay gate by gate' : `after ${snapshot?.label ?? 'gate'}`}
+            </span>
+            <span className="grow" />
+            {active !== null && (
+              <button className="chip" type="button" onClick={() => setStepIndex(null)}>
+                Back to final
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {view === 'amps' && <AmplitudeBars sim={shown} />}
+      {view === 'probs' && <ProbabilityBars sim={shown} />}
+      {view === 'sphere' && <QSphere sim={shown} />}
+      {view === 'bloch' && <BlochSphere sim={shown} />}
     </div>
   )
 }

@@ -592,7 +592,7 @@ export function Composer({
         </Panel>
 
         <div className={embedded ? 'stack gap-14' : 'grid'} style={embedded ? undefined : { gridTemplateColumns: 'minmax(0,1.25fr) minmax(0,1fr)', gap: 14 }}>
-          <Panel title="State" sub="Live statevector after every gate" tight>
+          <Panel title="State" sub="Live statevector · replay it gate by gate" tight>
             <StatePanel sim={sim} />
           </Panel>
           <Panel title="Measurement" sub="Sampled shot histogram" tight>
