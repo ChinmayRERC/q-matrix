@@ -1808,8 +1808,7 @@ code, pre, kbd { font-family: var(--font-mono); }
 }
 
 .hd-stage {
-  position: sticky;
-  top: 72px;
+  position: static;
   display: flex;
   flex-direction: column;
   gap: 9px;
@@ -1821,11 +1820,11 @@ code, pre, kbd { font-family: var(--font-mono); }
     #f3f1e9;
   color: #2f2e2a;
   box-shadow: 0 34px 70px -34px rgba(0, 0, 0, 0.95), inset 0 1px 0 #fff;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(47, 46, 42, 0.22) transparent;
+}
+
+/* Only pin the plate when the whole card fits under the top bar. */
+@media (min-width: 1181px) and (min-height: 900px) {
+  .hd-stage { position: sticky; top: 72px; }
 }
 
 .hd-stage-bar {
@@ -1896,18 +1895,18 @@ code, pre, kbd { font-family: var(--font-mono); }
 .hd-ground-shadow { filter: blur(9px); }
 .hd-bolts circle { fill: #7a776d; stroke: #3f3e39; stroke-width: 0.35; }
 
-.hd-surf-lo { fill: #ddd9cd; stroke: #6d6a62; stroke-width: 0.8; }
-.hd-surf-mid { fill: #efede5; stroke: #5b5952; stroke-width: 0.9; }
-.hd-surf-hi { fill: #fbfaf5; stroke: #4e4c46; stroke-width: 1; }
-.hd-surf-lit { fill: #ffffff; stroke: #4e4c46; stroke-width: 0.9; }
-.hd-line { fill: none; stroke: #55524b; stroke-width: 1.1; }
-.hd-beam-line { fill: none; stroke: #c4552f; stroke-width: 1.6; opacity: 0.88; }
+.hd-surf-lo { fill: #d8d3c4; stroke: #4b4841; stroke-width: 0.9; }
+.hd-surf-mid { fill: #ece9df; stroke: #3e3c37; stroke-width: 1; }
+.hd-surf-hi { fill: #fbfaf5; stroke: #33312d; stroke-width: 1.1; }
+.hd-surf-lit { fill: #ffffff; stroke: #33312d; stroke-width: 1; }
+.hd-line { fill: none; stroke: #33312d; stroke-width: 1.2; }
+.hd-beam-line { fill: none; stroke: #b8471f; stroke-width: 1.8; opacity: 0.9; }
 .hd-beam-line.dim { opacity: 0.3; }
 
-.hd-atom { fill: #c4552f; filter: none; }
+.hd-atom { fill: #b8471f; filter: none; }
 
 .hd-engrave {
-  fill: #6f6b62;
+  fill: #4f4c45;
   font-family: var(--font-mono);
   font-size: 8.5px;
   font-weight: 500;
@@ -1915,7 +1914,7 @@ code, pre, kbd { font-family: var(--font-mono); }
 }
 
 .hd-plate-label {
-  fill: #6f6b62;
+  fill: #4f4c45;
   font-family: var(--font-mono);
   font-size: 8.5px;
   letter-spacing: 0.08em;
@@ -1924,13 +1923,13 @@ code, pre, kbd { font-family: var(--font-mono); }
 .hd-hotspot { cursor: pointer; }
 .hd-hotspot-ring {
   fill: #f7f5ee;
-  stroke: #4f4d46;
+  stroke: #33312d;
   stroke-width: 1.1;
   transition: stroke 0.18s var(--ease), fill 0.18s var(--ease);
 }
 .hd-hotspot-core {
-  fill: #e7e3d7;
-  stroke: #6f6b62;
+  fill: #e3ded1;
+  stroke: #4b4841;
   stroke-width: 0.6;
   transition: fill 0.18s var(--ease);
 }
@@ -1956,7 +1955,8 @@ code, pre, kbd { font-family: var(--font-mono); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 4px 10px;
   padding: 0 3px;
   font-family: var(--font-mono);
   font-size: 9px;
@@ -1967,6 +1967,7 @@ code, pre, kbd { font-family: var(--font-mono); }
 .hd-plate-foot span:last-child {
   color: #3f3d38;
   text-align: right;
+  margin-left: auto;
 }
 
 .hd-readout {
@@ -1996,7 +1997,7 @@ code, pre, kbd { font-family: var(--font-mono); }
 
 .hd-readout-top .eyebrow { color: #9a5236; }
 .hd-readout h3 { font-size: 15.5px; margin-top: 1px; color: #24231f; }
-.hd-readout > p { font-size: 12.5px; line-height: 1.55; color: #4b4943; }
+.hd-readout > p { font-size: 13px; line-height: 1.6; color: #42403a; overflow-wrap: anywhere; }
 
 .hd-spec {
   align-self: flex-start;
@@ -2437,7 +2438,7 @@ code, pre, kbd { font-family: var(--font-mono); }
   .hd-hero { grid-template-columns: 1fr; }
   .hd-atomlab { max-width: 560px; }
   .hd-anatomy { grid-template-columns: 1fr; }
-  .hd-stage { position: static; max-height: none; overflow: visible; }
+  .hd-stage { position: static; }
   .hd-steps {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2445,15 +2446,12 @@ code, pre, kbd { font-family: var(--font-mono); }
   .hd-step.on { transform: none; }
 }
 
-@media (max-width: 560px) {
-  /* On a phone the cutaway keeps its own space at the top while the
-     subsystem list scrolls underneath, so the diagram never leaves view. */
+@media (max-width: 560px) and (min-height: 780px) {
+  /* Pin the card only on phones tall enough to show it whole. */
   .hd-stage {
     position: sticky;
     top: 60px;
     z-index: 4;
-    max-height: calc(100vh - 66px);
-    overflow-y: auto;
   }
 }
 
