@@ -487,13 +487,11 @@ export function Hardware() {
           <div className="hd-stage">
             <div className="hd-stage-bar">
               <span className="hd-stage-tag">
-                <span className="hd-live" /> live cutaway
+                <span className="hd-live" /> technical plate
               </span>
-              <span className="tiny dim">{machine.caption}</span>
+              <span className="hd-fig">Fig {String(MACHINES.findIndex((m) => m.id === machineId) + 1).padStart(2, '0')}</span>
               <span className="grow" />
-              <span className="pill mono">
-                {parts.findIndex((p) => p.id === part.id) + 1}/{parts.length}
-              </span>
+              <span className="hd-fig-title">{machine.name}</span>
             </div>
 
             <div className="hd-diagram">
@@ -503,6 +501,11 @@ export function Hardware() {
               {machineId === 'photonic' && <PhotonicMachine part={part.id} onPart={selectPart} />}
               {machineId === 'nv' && <NvMachine part={part.id} onPart={selectPart} />}
               {machineId === 'silicon' && <SiliconMachine part={part.id} onPart={selectPart} />}
+            </div>
+
+            <div className="hd-plate-foot">
+              <span>Click a pin · scroll the subsystem list</span>
+              <span className="mono">{part.spec}</span>
             </div>
 
             <div className="hd-readout">

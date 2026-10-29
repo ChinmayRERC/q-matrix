@@ -189,6 +189,43 @@ function Hotspot({
   )
 }
 
+/** A ring of fasteners, drawn on flanges and plates. */
+function Bolts({ cx, cy, rx, ry, n = 8 }: { cx: number; cy: number; rx: number; ry: number; n?: number }) {
+  return (
+    <g className="hd-bolts">
+      {Array.from({ length: n }, (_, i) => {
+        const a = (i / n) * Math.PI * 2
+        return <circle key={i} cx={cx + Math.cos(a) * rx} cy={cy + Math.sin(a) * ry} r={1.7} />
+      })}
+    </g>
+  )
+}
+
+/** Ruler ticks and corner fasteners on the optical table. */
+function TableTicks() {
+  return (
+    <g>
+      <g className="hd-ticks">
+        {Array.from({ length: 14 }, (_, i) => {
+          const x = 148 + i * 17.4
+          const y = 427 + i * 9.05
+          return <line key={i} x1={x} y1={y} x2={x + 2} y2={y + 7} />
+        })}
+      </g>
+      <g className="hd-bolts">
+        {[
+          [152, 423],
+          [386, 358],
+          [637, 423],
+          [398, 489],
+        ].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={2.4} />
+        ))}
+      </g>
+    </g>
+  )
+}
+
 export function AtomMachine({
   part,
   onPart,
@@ -219,8 +256,7 @@ export function AtomMachine({
       </defs>
 
       {/* floor shadow */}
-      <ellipse cx="400" cy="545" rx="270" ry="42" fill="#000" opacity="0.38" />
-      <ellipse cx="400" cy="545" rx="270" ry="42" fill="url(#hd-glow)" opacity="0.25" />
+      <ellipse className="hd-ground-shadow" cx="400" cy="545" rx="270" ry="42" fill="#6b6860" opacity="0.2" />
 
       {/* optical table top */}
       <polygon className="hd-surf-mid" points="130,410 380,348 650,410 400,478" />
@@ -243,6 +279,7 @@ export function AtomMachine({
       ].map(([x, y], i) => (
         <circle key={i} cx={x} cy={y} r="2" fill="#070a15" opacity="0.6" />
       ))}
+      <TableTicks />
 
       {/* legs */}
       <polygon className="hd-surf-lo" points="148,438 176,432 176,520 148,527" />
@@ -289,12 +326,13 @@ export function AtomMachine({
       {/* chamber body */}
       <g>
         <ellipse cx="400" cy="300" rx="76" ry="26" className="hd-surf-hi" />
+        <Bolts cx={400} cy={300} rx={68} ry={21} n={12} />
         <path d="M 324 300 L 324 404 A 76 26 0 0 0 476 404 L 476 300" className="hd-surf-mid" />
         <ellipse cx="400" cy="404" rx="76" ry="26" className="hd-surf-lo" />
         <ellipse cx="400" cy="300" rx="66" ry="21" className="hd-surf-lit" opacity="0.5" />
         <ellipse cx="400" cy="300" rx="52" ry="16" fill="#05070f" opacity="0.8" />
         {/* glass cell */}
-        <path d="M 356 316 L 356 392 A 44 15 0 0 0 444 392 L 444 316 A 44 15 0 0 1 356 316 Z" fill="url(#hd-glass)" stroke="#7ce7ff" strokeOpacity="0.35" />
+        <path d="M 356 316 L 356 392 A 44 15 0 0 0 444 392 L 444 316 A 44 15 0 0 1 356 316 Z" fill="#eef3f4" stroke="#5f5d57" strokeWidth="1" />
         <ellipse cx="400" cy="316" rx="44" ry="15" fill="none" stroke="#7ce7ff" strokeOpacity="0.45" />
         {/* atom array inside */}
         {Array.from({ length: 5 }, (_, row) =>
@@ -309,7 +347,6 @@ export function AtomMachine({
             />
           )),
         )}
-        <circle cx="400" cy="356" r="46" fill="url(#hd-glow)" opacity="0.5" />
         {/* MOT coils */}
         <ellipse cx="400" cy="340" rx="84" ry="24" fill="none" stroke="#ffc46b" strokeWidth="5" opacity="0.7" />
         <ellipse cx="400" cy="374" rx="84" ry="24" fill="none" stroke="#ffc46b" strokeWidth="5" opacity="0.5" />
@@ -397,8 +434,7 @@ export function FridgeMachine({
         </radialGradient>
       </defs>
 
-      <ellipse cx="390" cy="552" rx="250" ry="40" fill="#000" opacity="0.4" />
-      <ellipse cx="390" cy="552" rx="250" ry="40" fill="url(#hd-chip-glow)" opacity="0.2" />
+      <ellipse className="hd-ground-shadow" cx="390" cy="552" rx="250" ry="40" fill="#6b6860" opacity="0.2" />
 
       {/* frame */}
       <rect x="250" y="118" width="270" height="12" rx="4" className="hd-surf-hi" />
@@ -416,6 +452,7 @@ export function FridgeMachine({
           <ellipse cx="392" cy={p.y} rx={p.w} ry={p.w * 0.24} className={i === 0 ? 'hd-surf-hi' : 'hd-surf-mid'} />
           <ellipse cx="392" cy={p.y + 8} rx={p.w} ry={p.w * 0.24} className="hd-surf-lo" />
           <rect x={392 - p.w} y={p.y} width={p.w * 2} height="8" className="hd-surf-lo" />
+          <Bolts cx={392} cy={p.y} rx={p.w - 10} ry={(p.w - 10) * 0.24} n={10} />
           <text x={392 + p.w + 12} y={p.y + 4} className="hd-plate-label">{p.label}</text>
         </g>
       ))}
@@ -431,7 +468,6 @@ export function FridgeMachine({
       <ellipse cx="392" cy="382" rx="44" ry="12" className="hd-surf-hi" />
       <rect x="348" y="382" width="88" height="20" rx="6" className="hd-surf-mid" />
       <ellipse cx="392" cy="402" rx="44" ry="12" className="hd-surf-lo" />
-      <circle cx="392" cy="392" r="34" fill="url(#hd-chip-glow)" />
 
       {/* chip and sample holder */}
       <rect x="356" y="430" width="72" height="12" rx="3" className="hd-surf-hi" />
@@ -439,7 +475,6 @@ export function FridgeMachine({
       {[0, 1, 2, 3].map((i) => (
         <rect key={i} x={372 + i * 11} y="422" width="6" height="6" rx="1" fill="#9b7cff" opacity={0.35 + i * 0.15} />
       ))}
-      <circle cx="392" cy="425" r="30" fill="url(#hd-chip-glow)" opacity="0.7" />
 
       {/* wiring looms */}
       {[0, 1, 2, 3, 4].map((i) => (
@@ -762,8 +797,7 @@ export const SILICON_PARTS: MachinePart[] = [
 function TableBase() {
   return (
     <g>
-      <ellipse cx="400" cy="545" rx="270" ry="42" fill="#000" opacity="0.38" />
-      <ellipse cx="400" cy="545" rx="270" ry="42" fill="url(#hd-glow)" opacity="0.22" />
+      <ellipse className="hd-ground-shadow" cx="400" cy="545" rx="270" ry="42" fill="#6b6860" opacity="0.2" />
       <polygon className="hd-surf-mid" points="130,410 380,348 650,410 400,478" />
       <polygon className="hd-surf-lo" points="130,410 400,478 400,506 130,438" />
       <polygon className="hd-surf-lo" points="400,478 650,410 650,438 400,506" />
@@ -784,6 +818,7 @@ function TableBase() {
       ].map(([x, y], i) => (
         <circle key={i} cx={x} cy={y} r="2" fill="#070a15" opacity="0.65" />
       ))}
+      <TableTicks />
       <polygon className="hd-surf-lo" points="148,438 176,432 176,520 148,527" />
       <polygon className="hd-surf-lo" points="608,438 632,432 632,518 608,524" />
       <polygon className="hd-surf-lo" points="374,500 398,494 398,556 374,562" />
@@ -852,8 +887,10 @@ export function IonMachine({ part, onPart }: { part: string; onPart: (id: string
         <ellipse cx="400" cy="356" rx="80" ry="25" className="hd-surf-lo" />
         <path d="M 320 248 L 320 356 A 80 25 0 0 0 480 356 L 480 248" fill="none" stroke="#3b4a77" strokeWidth="1" />
         <ellipse cx="400" cy="248" rx="62" ry="17" className="hd-surf-lit" opacity="0.55" />
+        <Bolts cx={400} cy={248} rx={58} ry={15} n={12} />
         {/* viewport */}
-        <ellipse cx="400" cy="315" rx="52" ry="42" fill={`url(#ion-glass)`} stroke="#7ce7ff" strokeOpacity="0.45" strokeWidth="1.4" />
+        <ellipse cx="400" cy="315" rx="52" ry="42" fill="#eef3f4" stroke="#5f5d57" strokeWidth="1.1" />
+        <Bolts cx={400} cy={315} rx={57} ry={46} n={10} />
         <ellipse cx="400" cy="315" rx="44" ry="35" fill="none" stroke="#7ce7ff" strokeOpacity="0.18" />
         {/* trap electrodes */}
         {[300, 310, 326, 336].map((y, i) => (
@@ -862,7 +899,6 @@ export function IonMachine({ part, onPart }: { part: string; onPart: (id: string
         {[382, 391, 400, 409, 418].map((x, i) => (
           <circle key={x} cx={x} cy="318" r="3.4" className="hd-atom" style={{ animationDelay: `${i * 0.25}s` }} />
         ))}
-        <circle cx="400" cy="318" r="42" fill="url(#ion-glow)" opacity="0.7" />
         {/* flanges */}
         <rect x="310" y="300" width="14" height="30" rx="3" className="hd-surf-hi" />
         <rect x="476" y="300" width="14" height="30" rx="3" className="hd-surf-hi" />
@@ -981,7 +1017,6 @@ export function PhotonicMachine({ part, onPart }: { part: string; onPart: (id: s
         {[0, 1, 2].map((i) => (
           <rect key={i} x={388 + i * 20} y={416 - i * 4} width="8" height="4" rx="1" fill="#9b7cff" opacity="0.8" />
         ))}
-        <circle cx="410" cy="418" r="30" fill="url(#ph-glow)" opacity="0.55" />
         <text x="410" y="452" className="hd-plate-label" textAnchor="middle">PHOTONIC CHIP</text>
       </g>
 
@@ -1074,7 +1109,6 @@ export function NvMachine({ part, onPart }: { part: string; onPart: (id: string)
         <ellipse cx="400" cy="376" rx="22" ry="7" className="hd-surf-hi" />
         <rect x="388" y="378" width="24" height="12" rx="2" fill="#05070f" stroke="#62e0f2" strokeOpacity="0.5" />
         <rect x="386" y="390" width="28" height="6" rx="2" className="hd-surf-lit" />
-        <circle cx="400" cy="386" r="20" fill="url(#nv-glow)" opacity="0.5" />
         <text x="400" y="294" className="hd-plate-label" textAnchor="middle">OBJECTIVE</text>
       </g>
 
@@ -1132,8 +1166,7 @@ export function SiliconMachine({ part, onPart }: { part: string; onPart: (id: st
   return (
     <svg className="hd-svg" viewBox="0 0 760 620" role="img" aria-label="Isometric cutaway of a silicon spin-qubit cryostat with a quantum dot chip">
       <Defs id="si" />
-      <ellipse cx="390" cy="552" rx="250" ry="40" fill="#000" opacity="0.4" />
-      <ellipse cx="390" cy="552" rx="250" ry="40" fill="url(#si-glow)" opacity="0.18" />
+      <ellipse className="hd-ground-shadow" cx="390" cy="552" rx="250" ry="40" fill="#6b6860" opacity="0.2" />
 
       {/* frame */}
       <rect x="250" y="118" width="270" height="12" rx="4" className="hd-surf-hi" />
@@ -1154,6 +1187,7 @@ export function SiliconMachine({ part, onPart }: { part: string; onPart: (id: st
           <ellipse cx="392" cy={p.y} rx={p.w} ry={p.w * 0.24} className={i === 0 ? 'hd-surf-hi' : 'hd-surf-mid'} />
           <ellipse cx="392" cy={p.y + 8} rx={p.w} ry={p.w * 0.24} className="hd-surf-lo" />
           <rect x={392 - p.w} y={p.y} width={p.w * 2} height="8" className="hd-surf-lo" />
+          <Bolts cx={392} cy={p.y} rx={p.w - 10} ry={(p.w - 10) * 0.24} n={10} />
         </g>
       ))}
       <rect x="386" y="122" width="12" height="250" rx="3" className="hd-surf-mid" />
@@ -1176,7 +1210,6 @@ export function SiliconMachine({ part, onPart }: { part: string; onPart: (id: st
         {[0, 1, 2, 3, 4].map((i) => (
           <circle key={i} cx={390 + i * 8} cy={401 + i * 0.1} r="2" fill="#9b7cff" className="hd-atom" style={{ animationDelay: `${i * 0.3}s` }} />
         ))}
-        <circle cx="410" cy="402" r="26" fill="url(#si-glow)" />
         <text x="410" y="446" className="hd-plate-label" textAnchor="middle">QUANTUM DOT CHIP</text>
       </g>
 
