@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Atom,
   Boxes,
+  Camera,
   CircuitBoard,
   Cpu,
   ExternalLink,
@@ -337,6 +338,71 @@ function AtomLab() {
   )
 }
 
+interface MachinePhoto {
+  src: string
+  alt: string
+  caption: string
+  credit: string
+  license: string
+  source: string
+}
+
+/**
+ * Real photographs, all from Wikimedia Commons under CC BY, CC BY-SA or
+ * public domain. Each plate can switch to its reference photo, and the
+ * credit line is rendered next to the image.
+ */
+const PHOTOS: Record<string, MachinePhoto> = {
+  atom: {
+    src: `${import.meta.env.BASE_URL}hardware/neutral-atom.jpg`,
+    alt: 'The magneto-optical trap inside a neutral-atom quantum computer',
+    caption: 'The magneto-optical trap inside QuEra’s first-generation neutral-atom machine.',
+    credit: 'QuEra Computing',
+    license: 'CC BY 4.0',
+    source: 'https://commons.wikimedia.org/wiki/File:QuEra_Aquila_Magneto-Optical_Trap.jpg',
+  },
+  super: {
+    src: `${import.meta.env.BASE_URL}hardware/superconducting.jpg`,
+    alt: 'IBM Quantum System One superconducting quantum computer',
+    caption: 'IBM Quantum System One: dilution refrigerator, control electronics and enclosure in one frame.',
+    credit: 'OJB Quantum',
+    license: 'CC BY 4.0',
+    source: 'https://commons.wikimedia.org/wiki/File:IBM_Quantum_System_One.jpg',
+  },
+  ion: {
+    src: `${import.meta.env.BASE_URL}hardware/trapped-ion.jpg`,
+    alt: 'A planar gold-on-silicon ion trap',
+    caption: 'A gold-on-silicon planar ion trap, designed for wafer-scale manufacture.',
+    credit: 'National Institute of Standards and Technology',
+    license: 'Public domain',
+    source: 'https://commons.wikimedia.org/wiki/File:Planar_Ion_Trap_(5941086002).jpg',
+  },
+  photonic: {
+    src: `${import.meta.env.BASE_URL}hardware/photonic.jpg`,
+    alt: 'A quantum-optics bench with mirrors, lenses and fibre',
+    caption: 'A real quantum-optics bench: mirrors, lenses, fibre and modulators — the hardware a photonic processor is assembled from.',
+    credit: 'Tomasz Kawalec',
+    license: 'CC BY-SA 4.0',
+    source: 'https://commons.wikimedia.org/wiki/File:Cold_atoms_experiment_01.JPG',
+  },
+  nv: {
+    src: `${import.meta.env.BASE_URL}hardware/diamond-nv.jpg`,
+    alt: 'Fluorescence from nitrogen-vacancy centres in diamond',
+    caption: 'Fluorescence from a dense spot of nitrogen-vacancy centres in diamond.',
+    credit: 'Lillian B. Hughes et al.',
+    license: 'CC BY 4.0',
+    source: 'https://commons.wikimedia.org/wiki/File:Irradiated_spot_of_diamond_with_high_concentration_of_nitrogen-vacancy_centers.jpg',
+  },
+  silicon: {
+    src: `${import.meta.env.BASE_URL}hardware/silicon-spin.jpg`,
+    alt: 'A quantum-dot device wire-bonded to a chip carrier',
+    caption: 'A quantum-dot device wire-bonded to a carrier — the packaging style used for spin qubits.',
+    credit: 'UCL Mathematical & Physical Sciences',
+    license: 'CC BY 2.0',
+    source: 'https://commons.wikimedia.org/wiki/File:Quantum_dot_circuit_(24964113547).jpg',
+  },
+}
+
 const MACHINE_ICON: Record<string, ReactNode> = {
   atom: <Atom size={14} />,
   super: <Snowflake size={14} />,
@@ -348,7 +414,9 @@ const MACHINE_ICON: Record<string, ReactNode> = {
 
 export function Hardware() {
   const [machineId, setMachineId] = useState('atom')
+  const [view, setView] = useState<'plate' | 'photo'>('plate')
   const machine = MACHINES.find((m) => m.id === machineId) ?? MACHINES[0]
+  const photo = PHOTOS[machineId]
   const parts = machine.parts
   const [partId, setPartId] = useState(parts[0].id)
   const part = parts.find((p) => p.id === partId) ?? parts[0]
@@ -464,7 +532,8 @@ export function Hardware() {
             <h2>What is actually inside the box</h2>
             <p>
               Six architectures, six cutaways. Pick a machine, then scroll the subsystem list: each part
-              explains what it does, what it is specified at, and what goes wrong when it drifts.
+              explains what it does, what it is specified at, and what goes wrong when it drifts. Switch
+              any plate to <strong>Photo</strong> to see real hardware from a working lab.
             </p>
           </div>
           <div className="hd-seg" role="tablist" aria-label="Choose a machine architecture">
@@ -487,25 +556,50 @@ export function Hardware() {
           <div className="hd-stage">
             <div className="hd-stage-bar">
               <span className="hd-stage-tag">
-                <span className="hd-live" /> technical plate
+                <span className="hd-live" /> {view === 'plate' ? 'technical plate' : 'reference photo'}
               </span>
               <span className="hd-fig">Fig {String(MACHINES.findIndex((m) => m.id === machineId) + 1).padStart(2, '0')}</span>
               <span className="grow" />
-              <span className="hd-fig-title">{machine.name}</span>
+              <div className="hd-view-toggle" role="group" aria-label="Switch between drawing and photograph">
+                <button type="button" aria-pressed={view === 'plate'} onClick={() => setView('plate')}>
+                  <Layers size={12} /> Plate
+                </button>
+                <button type="button" aria-pressed={view === 'photo'} onClick={() => setView('photo')}>
+                  <Camera size={12} /> Photo
+                </button>
+              </div>
             </div>
 
             <div className="hd-diagram">
-              {machineId === 'atom' && <AtomMachine part={part.id} onPart={selectPart} />}
-              {machineId === 'super' && <FridgeMachine part={part.id} onPart={selectPart} />}
-              {machineId === 'ion' && <IonMachine part={part.id} onPart={selectPart} />}
-              {machineId === 'photonic' && <PhotonicMachine part={part.id} onPart={selectPart} />}
-              {machineId === 'nv' && <NvMachine part={part.id} onPart={selectPart} />}
-              {machineId === 'silicon' && <SiliconMachine part={part.id} onPart={selectPart} />}
+              {view === 'photo' ? (
+                <figure className="hd-photo">
+                  <div className="hd-photo-frame">
+                    <img src={photo.src} alt={photo.alt} loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <span>{photo.caption}</span>
+                    <a href={photo.source} target="_blank" rel="noreferrer noopener">
+                      Photo: {photo.credit} · {photo.license} · Wikimedia Commons
+                    </a>
+                  </figcaption>
+                </figure>
+              ) : (
+                <>
+                  {machineId === 'atom' && <AtomMachine part={part.id} onPart={selectPart} />}
+                  {machineId === 'super' && <FridgeMachine part={part.id} onPart={selectPart} />}
+                  {machineId === 'ion' && <IonMachine part={part.id} onPart={selectPart} />}
+                  {machineId === 'photonic' && <PhotonicMachine part={part.id} onPart={selectPart} />}
+                  {machineId === 'nv' && <NvMachine part={part.id} onPart={selectPart} />}
+                  {machineId === 'silicon' && <SiliconMachine part={part.id} onPart={selectPart} />}
+                </>
+              )}
             </div>
 
             <div className="hd-plate-foot">
-              <span>Click a pin · scroll the subsystem list</span>
-              <span className="mono">{part.spec}</span>
+              <span>
+                {view === 'plate' ? `${machine.name} · click a pin` : `${machine.name} · reference photograph`}
+              </span>
+              <span className="mono">{view === 'plate' ? part.spec : photo.license}</span>
             </div>
 
             <div className="hd-readout">

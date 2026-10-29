@@ -2518,3 +2518,81 @@ code, pre, kbd { font-family: var(--font-mono); }
 .hd-svg [stroke="#3b4a77"] { stroke: #5f5d57; }
 .hd-svg [stroke="#fff"] { stroke: #3f3d38; }
 .hd-ticks line { stroke: #7a766c; stroke-width: 0.7; }
+
+/* Plate / photograph switch --------------------------------------------- */
+
+.hd-view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 3px;
+  border: 1px solid #c9c4b7;
+  background: #eae7de;
+}
+
+.hd-view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #6f6b62;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hd-view-toggle button:hover { color: #2f2e2a; }
+.hd-view-toggle button[aria-pressed="true"] {
+  background: #fbfaf5;
+  color: #2f2e2a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.hd-photo {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fbfaf5;
+}
+
+.hd-photo-frame {
+  position: relative;
+  aspect-ratio: 760 / 540;
+  background:
+    radial-gradient(500px 260px at 50% 46%, #2b2925, transparent 74%),
+    #1b1a17;
+}
+
+.hd-photo-frame img {
+  position: absolute;
+  inset: 10px;
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
+  object-fit: contain;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+}
+
+.hd-photo figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 11px;
+  border-top: 1px solid #d8d3c6;
+  color: #4b4943;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.hd-photo figcaption a {
+  color: #8f3f24;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.hd-photo figcaption a:hover { text-decoration: underline; }
