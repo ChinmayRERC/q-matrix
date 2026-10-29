@@ -34,9 +34,16 @@ import {
   filterHardware,
   type HardwareCategory,
 } from '../lib/hardware/catalogue'
-import { AtomMachine, ATOM_PARTS, FridgeMachine, SUPER_PARTS } from './HardwareDiagrams'
+import {
+  AtomMachine,
+  FridgeMachine,
+  IonMachine,
+  MACHINES,
+  NvMachine,
+  PhotonicMachine,
+  SiliconMachine,
+} from './HardwareDiagrams'
 
-type Platform = 'atom' | 'super'
 type Phase = 'ground' | 'rydberg' | 'measured'
 
 const CATEGORY_ICON: Record<HardwareCategory, ReactNode> = {
@@ -96,6 +103,30 @@ const PLATFORMS = [
     strength: 'No cryostat, nanoscale sensing, robust solid state',
     limit: 'Short range, fabrication variance, harder to scale',
     accent: 'pink',
+  },
+  {
+    id: 'photonic',
+    name: 'Photonic',
+    icon: <Waves size={18} />,
+    qubit: 'Single photon / squeezed mode',
+    temp: 'Chip at room temperature',
+    gate: 'ps–ns',
+    readout: 'SNSPD at ≈1 K',
+    strength: 'Fab-compatible chips, low loss, room-temperature logic',
+    limit: 'Photon loss, no storage, detector overhead',
+    accent: 'amber',
+  },
+  {
+    id: 'silicon',
+    name: 'Silicon spin qubits',
+    icon: <CircuitBoard size={18} />,
+    qubit: 'Electron spin in a quantum dot',
+    temp: '≈100 mK',
+    gate: 'ns–µs',
+    readout: 'Charge sensing',
+    strength: 'CMOS-compatible, tiny footprint, long coherence in ²⁸Si',
+    limit: 'Charge noise, material disorder, wafer yield',
+    accent: 'lime',
   },
 ]
 
@@ -306,9 +337,19 @@ function AtomLab() {
   )
 }
 
+const MACHINE_ICON: Record<string, ReactNode> = {
+  atom: <Atom size={14} />,
+  super: <Snowflake size={14} />,
+  ion: <Sparkles size={14} />,
+  photonic: <Waves size={14} />,
+  nv: <Gauge size={14} />,
+  silicon: <Cpu size={14} />,
+}
+
 export function Hardware() {
-  const [platform, setPlatform] = useState<Platform>('atom')
-  const parts = platform === 'atom' ? ATOM_PARTS : SUPER_PARTS
+  const [machineId, setMachineId] = useState('atom')
+  const machine = MACHINES.find((m) => m.id === machineId) ?? MACHINES[0]
+  const parts = machine.parts
   const [partId, setPartId] = useState(parts[0].id)
   const part = parts.find((p) => p.id === partId) ?? parts[0]
   const stepRefs = useRef<Record<string, HTMLButtonElement | null>>({})
@@ -328,8 +369,8 @@ export function Hardware() {
 
   useEffect(() => {
     manual.current = false
-    setPartId((platform === 'atom' ? ATOM_PARTS : SUPER_PARTS)[0].id)
-  }, [platform])
+    setPartId((MACHINES.find((m) => m.id === machineId) ?? MACHINES[0]).parts[0].id)
+  }, [machineId])
 
   // Scroll the page and the cutaway follows: the step nearest the middle of the
   // viewport becomes the highlighted subsystem.
@@ -357,7 +398,7 @@ export function Hardware() {
       observer.disconnect()
       window.removeEventListener('scroll', release)
     }
-  }, [platform])
+  }, [machineId])
 
   return (
     <div className="hd fade-in">
@@ -376,8 +417,8 @@ export function Hardware() {
           </h2>
           <p className="lead hd-hero-lead">
             A qubit is never just a qubit. It is a vacuum chamber, a laser rack, a kilometre of coax, a
-            fridge colder than space, and a control system that has to be right to the nanosecond. Open the
-            machine, then browse every layer of hardware that makes it real.
+            fridge colder than space, and a control system that has to be right to the nanosecond. Open six
+            machine architectures, then browse every layer of hardware that makes them real.
           </p>
           <div className="hd-hero-stats">
             <div>
@@ -389,8 +430,8 @@ export function Hardware() {
               <span>subsystems</span>
             </div>
             <div>
-              <strong>4</strong>
-              <span>qubit platforms</span>
+              <strong>{MACHINES.length}</strong>
+              <span>machine anatomies</span>
             </div>
           </div>
           <div className="row gap-8 wrap hd-hero-actions">
@@ -422,29 +463,23 @@ export function Hardware() {
             <span className="eyebrow">01 · anatomy</span>
             <h2>What is actually inside the box</h2>
             <p>
-              Scroll the subsystem list. The cutaway stays with you, and each part explains what it does,
-              what it is specified at, and what goes wrong when it drifts.
+              Six architectures, six cutaways. Pick a machine, then scroll the subsystem list: each part
+              explains what it does, what it is specified at, and what goes wrong when it drifts.
             </p>
           </div>
           <div className="hd-seg" role="tablist" aria-label="Choose a machine architecture">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={platform === 'atom'}
-              className={platform === 'atom' ? 'on' : ''}
-              onClick={() => setPlatform('atom')}
-            >
-              <Atom size={14} /> Neutral atoms
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={platform === 'super'}
-              className={platform === 'super' ? 'on' : ''}
-              onClick={() => setPlatform('super')}
-            >
-              <Snowflake size={14} /> Superconducting
-            </button>
+            {MACHINES.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                role="tab"
+                aria-selected={machineId === m.id}
+                className={machineId === m.id ? 'on' : ''}
+                onClick={() => setMachineId(m.id)}
+              >
+                {MACHINE_ICON[m.id]} {m.short}
+              </button>
+            ))}
           </div>
         </header>
 
@@ -454,9 +489,7 @@ export function Hardware() {
               <span className="hd-stage-tag">
                 <span className="hd-live" /> live cutaway
               </span>
-              <span className="tiny dim">
-                {platform === 'atom' ? 'Cold-atom processor · optical table' : 'Dilution refrigerator · qubit chip'}
-              </span>
+              <span className="tiny dim">{machine.caption}</span>
               <span className="grow" />
               <span className="pill mono">
                 {parts.findIndex((p) => p.id === part.id) + 1}/{parts.length}
@@ -464,11 +497,12 @@ export function Hardware() {
             </div>
 
             <div className="hd-diagram">
-              {platform === 'atom' ? (
-                <AtomMachine part={part.id} onPart={selectPart} />
-              ) : (
-                <FridgeMachine part={part.id} onPart={selectPart} />
-              )}
+              {machineId === 'atom' && <AtomMachine part={part.id} onPart={selectPart} />}
+              {machineId === 'super' && <FridgeMachine part={part.id} onPart={selectPart} />}
+              {machineId === 'ion' && <IonMachine part={part.id} onPart={selectPart} />}
+              {machineId === 'photonic' && <PhotonicMachine part={part.id} onPart={selectPart} />}
+              {machineId === 'nv' && <NvMachine part={part.id} onPart={selectPart} />}
+              {machineId === 'silicon' && <SiliconMachine part={part.id} onPart={selectPart} />}
             </div>
 
             <div className="hd-readout">
@@ -547,7 +581,7 @@ export function Hardware() {
         <header className="hd-section-head">
           <div>
             <span className="eyebrow">03 · platforms</span>
-            <h2>Four ways to hold a qubit</h2>
+            <h2>Six ways to hold a qubit</h2>
             <p>
               The architecture decides the whole lab. A superconducting machine is a fridge problem; a
               neutral-atom machine is a laser and vacuum problem; an ion trap is a shuttling problem.

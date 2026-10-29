@@ -1767,12 +1767,14 @@ code, pre, kbd { font-family: var(--font-mono); }
 
 .hd-seg {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--sunken);
   align-self: center;
+  max-width: 100%;
 }
 
 .hd-seg button {
@@ -1865,9 +1867,21 @@ code, pre, kbd { font-family: var(--font-mono); }
     radial-gradient(600px 300px at 50% 50%, rgba(155, 124, 255, 0.08), transparent 70%),
     #060915;
   overflow: hidden;
+  perspective: 1400px;
 }
 
-.hd-svg { display: block; width: 100%; height: auto; }
+.hd-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-style: preserve-3d;
+  transition: transform 0.5s var(--ease), filter 0.5s var(--ease);
+}
+
+.hd-diagram:hover .hd-svg {
+  transform: rotateX(1.6deg) rotateY(-1.8deg) scale(1.008);
+  filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.4));
+}
 
 .hd-surf-lo { fill: #0e1428; }
 .hd-surf-mid { fill: #17203a; }
@@ -2108,7 +2122,7 @@ code, pre, kbd { font-family: var(--font-mono); }
 
 .hd-platforms {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -2463,5 +2477,7 @@ code, pre, kbd { font-family: var(--font-mono); }
   .hd-live,
   .hd-hotspot.on .hd-hotspot-ring { animation: none !important; }
   .hd-item,
-  .hd-step { transition: none; }
+  .hd-step,
+  .hd-svg { transition: none; }
+  .hd-diagram:hover .hd-svg { transform: none; }
 }
