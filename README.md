@@ -15,7 +15,7 @@
 | **Organisation** | [vtu-qiskit-fall-fest-2026](https://github.com/vtu-qiskit-fall-fest-2026) |
 | **Event** | VTU-QFF Hackathon — VTU-Qiskit Fall Fest 2026 |
 
-**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [India's quantum future](https://chinmayrerc.github.io/q-matrix/#/india) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
+**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Hardware department](https://chinmayrerc.github.io/q-matrix/#/hardware) · [India's quantum future](https://chinmayrerc.github.io/q-matrix/#/india) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
 
 ---
 
@@ -118,6 +118,7 @@ The approach emphasizes practical experimentation, visual understanding, and per
 | **Build** | 19 gate types, drag/touch/keyboard placement, mid-circuit measurement, classical feed-forward, noise presets, hardware device profiles, OpenQASM 2.0 round-trip, and Qiskit/Cirq/PennyLane export |
 | **Simulate** | TypeScript statevector and density-matrix engines, independent FastAPI/NumPy oracle, ideal vs noisy runs, device-derived noise, SWAP routing and timing estimates, measurement collapse, and cross-check results |
 | **Visualize** | Amplitudes, probabilities, histograms, Bloch spheres, Q-sphere, circuit diagrams, gate-by-gate state replay, and a 3D Quantum Galaxy knowledge map with a 2D SVG fallback |
+| **Hardware** | Quantum Hardware Department: an interactive rubidium atom, scroll-linked isometric cutaways of a neutral-atom processor and a dilution refrigerator, a four-platform comparison, and a searchable catalogue of 79 real machines, control electronics, cryostats, lasers, detectors and actuators |
 | **Practice** | 13 verified circuit templates, 11 auto-graded challenges, 12 badges, XP/levels, daily streaks, and daily/weekly quests |
 | **Teach** | Bayesian Knowledge Tracing mastery, Hake learning-gain tracking, per-topic analytics, and CSV/JSON educator export |
 | **AI** | NVIDIA Nemotron tutor and study planner, optional Anthropic fallback, deterministic offline tutor, and server-side-only API keys |
