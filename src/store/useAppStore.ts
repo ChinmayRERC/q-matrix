@@ -7,6 +7,7 @@
  */
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import type { DeviceId } from '../lib/quantum/hardware'
 import {
   BADGES,
   QUESTS,
@@ -71,6 +72,8 @@ export interface Settings {
   noisy: boolean
   /** 0..1 depolarising strength when `noisy` is on. */
   noiseLevel: number
+  /** Target hardware profile; `custom` uses the manual noise controls. */
+  device: DeviceId
   reduceMotion: boolean
   /** Display order for multi-qubit kets. */
   showAmplitudes: boolean
@@ -140,6 +143,7 @@ const defaultSettings: Settings = {
   shots: 1024,
   noisy: false,
   noiseLevel: 0.02,
+  device: 'ideal',
   reduceMotion: false,
   showAmplitudes: true,
   tutorEnabled: true,
@@ -368,7 +372,15 @@ export const useAppStore = create<AppState>()(
     {
       name: 'quantumspace-v1',
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
+      // v1 had no hardware profile; keep every other saved field and fill the default.
+      migrate: (persisted) => {
+        const state = persisted as Partial<AppState>
+        const old = state.settings
+        // v1 learners who had already enabled noise keep the manual controls.
+        const device: DeviceId = old && !old.device && old.noisy ? 'custom' : (old?.device ?? 'ideal')
+        return { ...state, settings: { ...defaultSettings, ...(old ?? {}), device } } as AppState
+      },
       partialize: (state) => {
         const { toasts, chat, ...rest } = state
         void toasts

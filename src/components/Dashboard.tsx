@@ -7,6 +7,7 @@ import { useMemo } from 'react'
 import {
   ArrowRight,
   BookOpen,
+  Cpu,
   Flame,
   Gamepad2,
   Orbit,
@@ -130,6 +131,38 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
         <Stat label="Challenges" value={stats.challengesSolved} hint={`${state.badges.length} badges earned`} />
         <Stat label="Streak" value={`${streak}d`} hint={`best ${state.streak.best} days`} tone="var(--amber)" />
       </div>
+
+      <Panel
+        glow
+        title="The circuit diagram is not the machine"
+        sub="National Quantum Mission hardware, modelled in the same workbench"
+        actions={<Btn size="sm" variant="primary" icon={<Cpu size={12} />} onClick={() => onNavigate('#/hardware')}>Explore hardware</Btn>}
+      >
+        <div className="cols-3">
+          <div className="stat">
+            <div className="k">anviQa · neutral atoms</div>
+            <div className="v" style={{ fontSize: 19 }}>400 Rb</div>
+            <div className="h">reconfigurable · µs RDSNS readout</div>
+          </div>
+          <div className="stat">
+            <div className="k">anviQa · trapped ions</div>
+            <div className="v" style={{ fontSize: 19 }}>50 Ca⁺</div>
+            <div className="h">all-to-all · long coherence</div>
+          </div>
+          <div className="stat">
+            <div className="k">IBM · superconducting</div>
+            <div className="v" style={{ fontSize: 19 }}>133 Heron</div>
+            <div className="h">heavy-hex · SWAP routing</div>
+          </div>
+        </div>
+        <div className="row gap-8 wrap" style={{ marginTop: 12 }}>
+          <Pill tone="cyan"><Cpu size={10} /> device profiles</Pill>
+          <Pill tone="amber">SWAP overhead</Pill>
+          <Pill tone="green">µs vs ms readout</Pill>
+          <span className="grow" />
+          <span className="tiny dim">Pick a target in the workbench, then press Run.</span>
+        </div>
+      </Panel>
 
       <div className="split">
         <div className="stack gap-16">

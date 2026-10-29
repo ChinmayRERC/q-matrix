@@ -1,5 +1,6 @@
 import { GATE_LIBRARY, uMat, type GateKind } from './core'
 import { addGate, emptyCircuit, type Circuit, type Gate, type GateCondition } from './circuit'
+import { couplingFor, deviceById, type DeviceId } from './hardware'
 
 // ---------------------------------------------------------------------------
 // OpenQASM 2.0 serialisation
@@ -309,8 +310,7 @@ function parseQubitRefs(text: string, qregs: Map<string, { base: number; size: n
 // Export to other quantum SDKs
 // ---------------------------------------------------------------------------
 
-/** Python angle literal. `pi` is only valid inside OpenQASM, not Python. */
-function fmtPyParam(rad: number): string {
+/** Python angle literal. `pi` is only valid inside OpenQASM, not Python. */function fmtPyParam(rad: number): string {
   if (Math.abs(rad - Math.PI) < 1e-9) return 'math.pi'
   if (Math.abs(rad - Math.PI / 2) < 1e-9) return 'math.pi / 2'
   if (Math.abs(rad - Math.PI / 4) < 1e-9) return 'math.pi / 4'
@@ -340,12 +340,27 @@ function qiskitCall(gate: Gate): string {
   return `qc.${method}(${qubits.join(', ')})`
 }
 
-export function toQiskitPython(circuit: Circuit): string {
+export function toQiskitPython(circuit: Circuit, deviceId: DeviceId = 'ideal'): string {
   const n = circuit.numQubits
+  const device = deviceById(deviceId)
+  const target = device?.name ?? 'Custom noise'
+  const edges = couplingFor(device?.id ?? 'ideal', n)
+  const coupling = edges.length ? `[${edges.map(([a, b]) => `[${a}, ${b}]`).join(', ')}]` : 'None'
+  // Ideal has no native basis; use Qiskit's default so the pass manager can run offline.
+  const nativeBasis = device?.basis.filter((g) => g !== 'any') ?? []
+  const basis = `[${(nativeBasis.length ? nativeBasis : ['rz', 'sx', 'x', 'cx']).map((g) => `"${g}"`).join(', ')}]`
+  const hasMeasure = circuit.gates.some((g) => g.kind === 'M' || g.condition)
+
   const lines = [
+    '"""Qiskit export — the four-step Qiskit Pattern.',
+    '',
+    `Target: ${target}`,
+    `Built by Q-matrix · https://github.com/ChinmayRERC/q-matrix · Qiskit 2.0+`,
+    '"""',
     'import math',
     'from qiskit import QuantumCircuit',
     '',
+    '# 1. MAP — describe the problem as a circuit',
     `qc = QuantumCircuit(${n}, ${n})`,
     'q = qc.qubits',
     '',
@@ -370,11 +385,62 @@ export function toQiskitPython(circuit: Circuit): string {
       lines.push(call)
     }
   }
-  if (circuit.gates.some((g) => g.kind === 'M' || g.condition)) {
-    lines.push('', 'from qiskit_aer import AerSimulator', '', 'result = AerSimulator().run(qc, shots=1024).result()', 'print(result.get_counts())')
+
+  lines.push(
+    '',
+    '# 2. OPTIMIZE — transpile to the target coupling map and native gates',
+    'from qiskit.providers.fake_provider import GenericBackendV2',
+    'from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager',
+    '',
+    'backend = GenericBackendV2(',
+    `    num_qubits=${n},`,
+    `    coupling_map=${coupling},`,
+    `    basis_gates=${basis},`,
+    '    seed=7,',
+    ')',
+    '# Swap this for QiskitRuntimeService().backend("ibm_...") on a real QPU.',
+    'pm = generate_preset_pass_manager(optimization_level=2, backend=backend)',
+    'isa = pm.run(qc)',
+    'print("depth", isa.depth(), "· ops", dict(isa.count_ops()))',
+    '',
+    '# 3. EXECUTE — local simulation of the transpiled circuit',
+  )
+
+  if (hasMeasure) {
+    lines.push(
+      'from qiskit_aer import AerSimulator',
+      '',
+      'result = AerSimulator().run(isa, shots=1024).result()',
+      'counts = result.get_counts()',
+      'print(counts)',
+      '',
+      '# 4. POST-PROCESS — turn bitstrings into an answer',
+      'top = max(counts, key=counts.get)',
+      'print("most likely:", top, f"{counts[top] / 1024:.1%}")',
+    )
   } else {
-    lines.push('', 'from qiskit.quantum_info import Statevector', '', 'print(Statevector.from_instruction(qc))')
+    lines.push(
+      'from qiskit.quantum_info import Statevector',
+      '',
+      'state = Statevector.from_instruction(isa)',
+      'print(state.probabilities_dict())',
+      '',
+      '# 4. POST-PROCESS — no measurements, so inspect the statevector directly.',
+      '# Add qc.measure_all() before step 2 to sample bitstrings instead.',
+    )
   }
+
+  lines.push(
+    '',
+    '# On IBM Quantum hardware, replace step 3 with:',
+    '# from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler',
+    '# service = QiskitRuntimeService()',
+    '# backend = service.least_busy(operational=True, simulator=False)',
+    '# isa = generate_preset_pass_manager(optimization_level=2, backend=backend).run(qc)',
+    '# job = Sampler(mode=backend).run([isa], shots=1024)',
+    '# print(job.result()[0].data.c.get_counts())',
+  )
+
   return lines.join('\n')
 }
 

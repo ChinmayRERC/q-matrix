@@ -9,6 +9,7 @@ import { GATE_LIBRARY, type GateKind } from '../lib/quantum/core'
 import { describeGate, type Circuit, type Gate } from '../lib/quantum/circuit'
 import { summarizeDensity, summarizeState } from '../lib/quantum/analysis'
 import type { SimResult } from '../lib/quantum/simulator'
+import { evaluateHardware, formatDuration, type DeviceId } from '../lib/quantum/hardware'
 import { analyzeCircuit, gateInventory, scoreComplexity, type Insight } from '../lib/insights'
 import { Panel, Pill, Btn, Empty } from './ui'
 
@@ -29,6 +30,7 @@ const LEVEL_TONE = {
 export function Inspector({
   circuit,
   sim,
+  deviceId,
   selectedId,
   onPatch,
   onDelete,
@@ -37,6 +39,7 @@ export function Inspector({
 }: {
   circuit: Circuit
   sim: SimResult | null
+  deviceId: DeviceId
   selectedId: string | null
   onPatch: (id: string, patch: Partial<Gate>) => void
   onDelete: (id: string) => void
@@ -46,6 +49,7 @@ export function Inspector({
   const insights = useMemo(() => analyzeCircuit(circuit, sim ?? undefined), [circuit, sim])
   const complexity = useMemo(() => scoreComplexity(circuit), [circuit])
   const inventory = useMemo(() => gateInventory(circuit), [circuit])
+  const report = useMemo(() => evaluateHardware(circuit, deviceId), [circuit, deviceId])
   const summary = useMemo(
     () => (sim ? (sim.rho ? summarizeDensity(sim.rho, sim.numQubits) : summarizeState(sim.state, sim.numQubits)) : null),
     [sim],
@@ -172,6 +176,59 @@ export function Inspector({
           </div>
         </Panel>
       )}
+
+      <Panel
+        title="Target hardware"
+        sub={deviceId === 'custom' ? 'Manual noise mode' : report.device.name}
+        tight
+        actions={
+          <Pill tone={deviceId === 'custom' ? 'slate' : report.device.id === 'ideal' ? 'green' : 'cyan'}>
+            {deviceId === 'custom' ? 'custom' : report.device.connectivity === 'all-to-all' ? 'all-to-all' : 'routed'}
+          </Pill>
+        }
+      >
+        {deviceId === 'custom' ? (
+          <div className="tiny muted" style={{ lineHeight: 1.55 }}>
+            You are using the manual noise slider. Pick a real device in the Backend panel to see routing, timing and
+            readout costs for this exact circuit.
+          </div>
+        ) : (
+          <div className="stack gap-8">
+            <div className="cols-2">
+              <div className="stat">
+                <div className="k">Native 2Q</div>
+                <div className="v">{report.nativeTwoQubit}</div>
+                <div className="h">{report.programTwoQubit} written by you</div>
+              </div>
+              <div className="stat">
+                <div className="k">SWAP routing</div>
+                <div className="v">{report.swaps}</div>
+                <div className="h">{report.swaps ? `+${Math.round(report.overhead * 100)}% gates` : 'no detours'}</div>
+              </div>
+            </div>
+            <div className="cols-2">
+              <div className="stat">
+                <div className="k">Time / shot</div>
+                <div className="v">{formatDuration(report.estimatedMs)}</div>
+                <div className="h">depth {report.depth} · gate + readout</div>
+              </div>
+              <div className="stat">
+                <div className="k">Readout</div>
+                <div className="v" style={{ fontSize: 13 }}>{report.device.readoutLabel}</div>
+                <div className="h">{report.device.connectionNote}</div>
+              </div>
+            </div>
+            <div className={`insight ${report.swaps ? 'warning' : 'tip'}`}>
+              <span className="dot" />
+              <div>
+                <div className="t">{report.verdict}</div>
+                <div className="d">{report.device.note}</div>
+              </div>
+            </div>
+            <div className="tiny dim">Order-of-magnitude teaching estimates, not a device datasheet.</div>
+          </div>
+        )}
+      </Panel>
 
       <Panel
         title="Analysis"

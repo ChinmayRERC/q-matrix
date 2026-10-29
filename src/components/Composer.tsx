@@ -46,6 +46,15 @@ import {
   type Gate,
 } from '../lib/quantum/circuit'
 import { NOISE_PRESETS, simulate, type SimResult } from '../lib/quantum/simulator'
+import {
+  DEVICES,
+  DEVICE_LIST,
+  deviceById,
+  deviceNoise,
+  evaluateHardware,
+  formatDuration,
+  type DeviceId,
+} from '../lib/quantum/hardware'
 import { TEMPLATES, templateById } from '../lib/quantum/templates'
 import { parseQasm, toCirqPython, toPennyLanePython, toQasm, toQiskitPython } from '../lib/quantum/qasm'
 import { circuitVerdict, matchTemplate, optimizeCircuit } from '../lib/insights'
@@ -98,6 +107,20 @@ export function Composer({
   const [, forceRender] = useState(0)
   const history = useRef<{ past: Circuit[]; future: Circuit[] }>({ past: [], future: [] })
 
+  const deviceId: DeviceId = settings.device ?? 'ideal'
+  const device = deviceById(deviceId)
+
+  const chooseDevice = (id: DeviceId) => {
+    const profile = deviceById(id)
+    setSettings({
+      device: id,
+      noisy: !!profile && profile.noise.depolarizing > 0,
+      // Keep the learner's manual level when switching back to ideal/custom.
+      noiseLevel: profile && profile.noise.depolarizing > 0 ? profile.noise.depolarizing : settings.noiseLevel,
+    })
+    if (profile?.noise.depolarizing) recordNoiseRun()
+  }
+
   // Load a lesson/challenge preset once, replacing whatever was on the canvas.
   useEffect(() => {
     if (!initialTemplate) return
@@ -134,34 +157,41 @@ export function Composer({
 
   const sim = useMemo<SimResult | null>(() => {
     try {
-      const noise = settings.noisy
-        ? {
-            depolarizing: settings.noiseLevel,
-            amplitudeDamping: settings.noiseLevel * 0.5,
-            readoutError: settings.noiseLevel * 0.6,
-          }
-        : undefined
+      const noise =
+        deviceId === 'custom'
+          ? settings.noisy
+            ? {
+                depolarizing: settings.noiseLevel,
+                amplitudeDamping: settings.noiseLevel * 0.5,
+                readoutError: settings.noiseLevel * 0.6,
+              }
+            : undefined
+          : deviceNoise(deviceId)
       return simulate(circuit, { shots: settings.shots, seed, noise })
     } catch {
       return null
     }
-  }, [circuit, settings.shots, settings.noisy, settings.noiseLevel, seed])
+  }, [circuit, settings.shots, settings.noisy, settings.noiseLevel, deviceId, seed])
 
   const issues = useMemo(() => validateCircuit(circuit), [circuit])
   const verdict = useMemo(() => circuitVerdict(circuit, sim ?? undefined), [circuit, sim])
   const matched = useMemo(() => matchTemplate(circuit, TEMPLATES), [circuit])
+  const report = useMemo(() => evaluateHardware(circuit, deviceId), [circuit, deviceId])
 
   const run = () => {
     setSeed((s) => s + 1)
     if (settings.noisy) recordNoiseRun()
     try {
-      const noise = settings.noisy
-        ? {
-            depolarizing: settings.noiseLevel,
-            amplitudeDamping: settings.noiseLevel * 0.5,
-            readoutError: settings.noiseLevel * 0.6,
-          }
-        : undefined
+      const noise =
+        deviceId === 'custom'
+          ? settings.noisy
+            ? {
+                depolarizing: settings.noiseLevel,
+                amplitudeDamping: settings.noiseLevel * 0.5,
+                readoutError: settings.noiseLevel * 0.6,
+              }
+            : undefined
+          : deviceNoise(deviceId)
       const result = simulate(circuit, { shots: settings.shots, seed: seed + 1, noise })
       inspectCircuitResult(result, matched)
       toast({
@@ -243,7 +273,7 @@ export function Composer({
     exportTab === 'qasm'
       ? toQasm(circuit)
       : exportTab === 'qiskit'
-        ? toQiskitPython(circuit)
+        ? toQiskitPython(circuit, deviceId)
         : exportTab === 'cirq'
           ? toCirqPython(circuit)
           : toPennyLanePython(circuit)
@@ -371,8 +401,97 @@ export function Composer({
           )}
         </Panel>
 
-        <Panel title="Backend" tight>
+        <Panel title="Backend" sub="Pick the machine the circuit must run on" tight>
           <div className="stack gap-10">
+            <div className="param-row">
+              <label style={{ minWidth: 44 }}>Target</label>
+              <select
+                className="code-area"
+                style={{ minHeight: 0, padding: '5px 7px', fontSize: 11, width: 'auto', flex: 1, minWidth: 0 }}
+                value={deviceId}
+                onChange={(e) => chooseDevice(e.target.value as DeviceId)}
+              >
+                {DEVICE_LIST.map((id) => (
+                  <option key={id} value={id}>
+                    {id === 'custom' ? 'Custom noise' : DEVICES[id].name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {device ? (
+              <div className="stack gap-8">
+                <div className="row gap-6 wrap">
+                  <Pill tone="cyan">{device.connectivity === 'all-to-all' ? 'all-to-all' : 'nearest-neighbour'}</Pill>
+                  {device.physicalQubits > 0 && <Pill tone="violet">{device.physicalQubits}q target</Pill>}
+                </div>
+                <div className="tiny muted">{device.connectionNote}</div>
+                <div className="tiny dim mono">{device.basis.join(' · ')}</div>
+                {device.id !== 'ideal' && (
+                  <div className="cols-2">
+                    <div className="stat" style={{ padding: 9 }}>
+                      <div className="k">2Q gate</div>
+                      <div className="v" style={{ fontSize: 16 }}>{formatDuration(device.twoQubitNs / 1e6)}</div>
+                      <div className="h">readout {formatDuration(device.readoutNs / 1e6)}</div>
+                    </div>
+                    <div className="stat" style={{ padding: 9 }}>
+                      <div className="k">This circuit</div>
+                      <div className="v" style={{ fontSize: 16 }}>{report.nativeTwoQubit} 2Q</div>
+                      <div className="h">{report.swaps ? `${report.swaps} SWAP · ` : ''}{formatDuration(report.estimatedMs)}/shot</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="row gap-6 wrap">
+                  <label className="row gap-8" style={{ cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={settings.noisy}
+                      onChange={(e) => {
+                        setSettings({ noisy: e.target.checked })
+                        if (e.target.checked) recordNoiseRun()
+                      }}
+                    />
+                    <span className="small">Noisy hardware</span>
+                  </label>
+                  <span className="grow" />
+                  <Pill tone={settings.noisy ? 'amber' : 'green'}>{settings.noisy ? 'mixed state' : 'ideal'}</Pill>
+                </div>
+                {settings.noisy && (
+                  <div className="param-row">
+                    <label>p</label>
+                    <input
+                      type="range"
+                      min={0.001}
+                      max={0.08}
+                      step={0.001}
+                      value={settings.noiseLevel}
+                      onChange={(e) => setSettings({ noiseLevel: Number(e.target.value) })}
+                    />
+                    <span className="tiny mono dim">{settings.noiseLevel.toFixed(3)}</span>
+                  </div>
+                )}
+                <div className="row gap-6 wrap">
+                  {Object.entries(NOISE_PRESETS).map(([name, preset]) => (
+                    <Chip
+                      key={name}
+                      on={settings.noisy && Math.abs(preset.depolarizing - settings.noiseLevel) < 1e-6}
+                      onClick={() =>
+                        setSettings({
+                          noisy: preset.depolarizing > 0,
+                          noiseLevel: preset.depolarizing > 0 ? preset.depolarizing : 0.02,
+                        })
+                      }
+                    >
+                      {name}
+                    </Chip>
+                  ))}
+                </div>
+              </>
+            )}
+
             <div className="param-row">
               <label style={{ minWidth: 44 }}>Shots</label>
               <select
@@ -387,49 +506,6 @@ export function Composer({
                   </option>
                 ))}
               </select>
-            </div>
-            <label className="row gap-8" style={{ cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={settings.noisy}
-                onChange={(e) => {
-                  setSettings({ noisy: e.target.checked })
-                  if (e.target.checked) recordNoiseRun()
-                }}
-              />
-              <span className="small">Noisy hardware</span>
-              <span className="grow" />
-              <Pill tone={settings.noisy ? 'amber' : 'green'}>{settings.noisy ? 'mixed state' : 'ideal'}</Pill>
-            </label>
-            {settings.noisy && (
-              <div className="param-row">
-                <label>p</label>
-                <input
-                  type="range"
-                  min={0.001}
-                  max={0.08}
-                  step={0.001}
-                  value={settings.noiseLevel}
-                  onChange={(e) => setSettings({ noiseLevel: Number(e.target.value) })}
-                />
-                <span className="tiny mono dim">{settings.noiseLevel.toFixed(3)}</span>
-              </div>
-            )}
-            <div className="row gap-6 wrap">
-              {Object.entries(NOISE_PRESETS).map(([name, preset]) => (
-                <Chip
-                  key={name}
-                  on={settings.noisy && Math.abs(preset.depolarizing - settings.noiseLevel) < 1e-6}
-                  onClick={() =>
-                    setSettings({
-                      noisy: preset.depolarizing > 0,
-                      noiseLevel: preset.depolarizing > 0 ? preset.depolarizing : 0.02,
-                    })
-                  }
-                >
-                  {name}
-                </Chip>
-              ))}
             </div>
             <div className="divider" />
             <div className="row gap-6 wrap">
@@ -508,6 +584,7 @@ export function Composer({
             </Pill>
             <span className="tiny dim">{verdict}</span>
             {matched && <Pill tone="violet">{matched} template</Pill>}
+            {device && <Pill tone="cyan">{device.short}</Pill>}
             {sim && <span className="tiny dim mono">· solved in {sim.durationMs.toFixed(1)} ms</span>}
             <span className="grow" />
             <span className="tiny dim">⌘Z undo · Del delete · double-click a gate</span>
@@ -536,6 +613,7 @@ export function Composer({
           <Inspector
             circuit={circuit}
             sim={sim}
+            deviceId={deviceId}
             selectedId={selectedId}
             onPatch={patchGate}
             onDelete={del}

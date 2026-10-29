@@ -15,7 +15,7 @@
 | **Organisation** | [vtu-qiskit-fall-fest-2026](https://github.com/vtu-qiskit-fall-fest-2026) |
 | **Event** | VTU-QFF Hackathon — VTU-Qiskit Fall Fest 2026 |
 
-**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
+**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Hardware & India hub](https://chinmayrerc.github.io/q-matrix/#/hardware) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
 
 ---
 
@@ -67,6 +67,8 @@ Quantum computing education requires more than theoretical explanations. Student
 
 Q-matrix bridges the gap between theoretical quantum computing knowledge and practical implementation through interactive simulation, visualization, and intelligent educational assistance.
 
+**Why hardware matters:** a circuit diagram is not the machine. Gate counts hide what actually limits a quantum computer — qubit quality, coherence, connectivity, native gate sets, SWAP routing and readout speed. Q-matrix adds hardware-aware device profiles for India's National Quantum Mission targets (RRI Bengaluru's `anviQa` neutral-atom and trapped-ion programmes) and IBM's superconducting Heron, so learners see how the same circuit compiles, decoheres and is measured on real architectures. See the [Hardware & India hub](https://chinmayrerc.github.io/q-matrix/#/hardware).
+
 **Track / Category:** Quantum Computing | AI-Powered Education | Interactive Web Application
 
 ---
@@ -113,8 +115,8 @@ The approach emphasizes practical experimentation, visual understanding, and per
 | Area | Capabilities |
 |---|---|
 | **Learn** | 176 topics across 20 domains, 8 learning paths, prerequisite validation, and a seven-stage Virtual Lab: Aim → Theory → Pretest → Procedure → Simulation → Posttest → References |
-| **Build** | 19 gate types, drag/touch/keyboard placement, mid-circuit measurement, classical feed-forward, noise presets, OpenQASM 2.0 round-trip, and Qiskit/Cirq/PennyLane export |
-| **Simulate** | TypeScript statevector and density-matrix engines, independent FastAPI/NumPy oracle, ideal vs noisy runs, measurement collapse, and cross-check results |
+| **Build** | 19 gate types, drag/touch/keyboard placement, mid-circuit measurement, classical feed-forward, noise presets, hardware device profiles, OpenQASM 2.0 round-trip, and Qiskit/Cirq/PennyLane export |
+| **Simulate** | TypeScript statevector and density-matrix engines, independent FastAPI/NumPy oracle, ideal vs noisy runs, device-derived noise, SWAP routing and timing estimates, measurement collapse, and cross-check results |
 | **Visualize** | Amplitudes, probabilities, histograms, Bloch spheres, Q-sphere, circuit diagrams, and a 3D Quantum Galaxy knowledge map with a 2D SVG fallback |
 | **Practice** | 13 verified circuit templates, 11 auto-graded challenges, 12 badges, XP/levels, daily streaks, and daily/weekly quests |
 | **Teach** | Bayesian Knowledge Tracing mastery, Hake learning-gain tracking, per-topic analytics, and CSV/JSON educator export |

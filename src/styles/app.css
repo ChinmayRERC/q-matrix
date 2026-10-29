@@ -541,6 +541,8 @@ code, pre, kbd { font-family: var(--font-mono); }
 
 .tabs {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 2px;
   padding: 3px;
   border-radius: 12px;
@@ -1253,4 +1255,171 @@ code, pre, kbd { font-family: var(--font-mono); }
 .toggle-input:focus-visible + .toggle-track {
   outline: 2px solid var(--cyan);
   outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Hardware & India hub
+   -------------------------------------------------------------------------- */
+
+.hw-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 30px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line-strong);
+  background:
+    radial-gradient(760px 380px at 82% -10%, rgba(98, 224, 242, 0.16), transparent 62%),
+    radial-gradient(680px 420px at 12% 120%, rgba(155, 124, 255, 0.2), transparent 60%),
+    linear-gradient(160deg, rgba(18, 22, 44, 0.92), rgba(7, 10, 21, 0.94));
+  box-shadow: var(--shadow-2);
+}
+
+.hw-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.hw-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--glass);
+}
+
+.hw-card h3 { font-size: 15px; margin-top: 2px; }
+
+.hw-steps { display: flex; flex-direction: column; gap: 10px; }
+
+.hw-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--glass);
+}
+
+.hw-step-no {
+  flex: none;
+  padding-top: 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--violet);
+}
+
+.hw-step-icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: var(--cyan);
+  background: rgba(98, 224, 242, 0.1);
+  border: 1px solid rgba(98, 224, 242, 0.22);
+}
+
+.hw-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--amber);
+  background: var(--glass);
+}
+
+.hw-quote-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--amber);
+  background: rgba(255, 196, 107, 0.12);
+}
+
+.hw-needs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hw-need {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--glass);
+}
+
+.hw-loop {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hw-loop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(155, 124, 255, 0.1), rgba(255, 255, 255, 0.02));
+}
+
+.hw-loop-no {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #fff;
+  background: linear-gradient(140deg, var(--violet), var(--violet-deep));
+}
+
+.hw-sources {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hw-source {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.hw-source:hover {
+  border-color: var(--line-strong);
+  background: var(--glass-2);
+  text-decoration: none;
+}
+
+@media (max-width: 1100px) {
+  .hw-grid, .hw-loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .hw-grid, .hw-needs, .hw-loop, .hw-sources { grid-template-columns: 1fr; }
+  .hw-hero { padding: 20px; }
 }
