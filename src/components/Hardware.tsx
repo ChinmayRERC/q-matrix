@@ -574,7 +574,7 @@ export function Hardware() {
               {view === 'photo' ? (
                 <figure className="hd-photo">
                   <div className="hd-photo-frame">
-                    <img src={photo.src} alt={photo.alt} loading="lazy" />
+                    <img src={photo.src} alt={photo.alt} />
                   </div>
                   <figcaption>
                     <span>{photo.caption}</span>
