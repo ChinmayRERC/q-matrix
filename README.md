@@ -15,7 +15,7 @@
 | **Organisation** | [vtu-qiskit-fall-fest-2026](https://github.com/vtu-qiskit-fall-fest-2026) |
 | **Event** | VTU-QFF Hackathon — VTU-Qiskit Fall Fest 2026 |
 
-**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [Hardware & India hub](https://chinmayrerc.github.io/q-matrix/#/hardware) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
+**Links:** [Live demo](https://chinmayrerc.github.io/q-matrix/) · [India's quantum future](https://chinmayrerc.github.io/q-matrix/#/india) · [Demo video (2 min)](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · [API health](https://q-matrix.onrender.com/api/health) · [Submission deck](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) — 10-slide organiser template
 
 ---
 
@@ -67,7 +67,7 @@ Quantum computing education requires more than theoretical explanations. Student
 
 Q-matrix bridges the gap between theoretical quantum computing knowledge and practical implementation through interactive simulation, visualization, and intelligent educational assistance.
 
-**Why hardware matters:** a circuit diagram is not the machine. Gate counts hide what actually limits a quantum computer — qubit quality, coherence, connectivity, native gate sets, SWAP routing and readout speed. Q-matrix adds hardware-aware device profiles for India's National Quantum Mission targets (RRI Bengaluru's `anviQa` neutral-atom and trapped-ion programmes) and IBM's superconducting Heron, so learners see how the same circuit compiles, decoheres and is measured on real architectures. See the [Hardware & India hub](https://chinmayrerc.github.io/q-matrix/#/hardware).
+**Why hardware matters:** a circuit diagram is not the machine. Gate counts hide what actually limits a quantum computer — qubit quality, coherence, connectivity, native gate sets, SWAP routing and readout speed. Q-matrix adds hardware-aware device profiles for India's National Quantum Mission targets (RRI Bengaluru's `anviQa` neutral-atom and trapped-ion programmes) and IBM's superconducting Heron, so learners see how the same circuit compiles, decoheres and is measured on real architectures. See [India's quantum future](https://chinmayrerc.github.io/q-matrix/#/india).
 
 **Track / Category:** Quantum Computing | AI-Powered Education | Interactive Web Application
 

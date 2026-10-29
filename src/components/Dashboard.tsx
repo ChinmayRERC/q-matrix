@@ -136,7 +136,7 @@ export function Dashboard({ onOpenTopic, onNavigate }: { onOpenTopic: (id: strin
         glow
         title="The circuit diagram is not the machine"
         sub="National Quantum Mission hardware, modelled in the same workbench"
-        actions={<Btn size="sm" variant="primary" icon={<Cpu size={12} />} onClick={() => onNavigate('#/hardware')}>Explore hardware</Btn>}
+        actions={<Btn size="sm" variant="primary" icon={<Cpu size={12} />} onClick={() => onNavigate('#/india')}>India's quantum future</Btn>}
       >
         <div className="cols-3">
           <div className="stat">

@@ -34,6 +34,7 @@ const LessonView = lazy(() => import('./components/LessonView').then((m) => ({ d
 const Challenges = lazy(() => import('./components/Challenges').then((m) => ({ default: m.Challenges })))
 const Progress = lazy(() => import('./components/Progress').then((m) => ({ default: m.Progress })))
 const Hardware = lazy(() => import('./components/Hardware').then((m) => ({ default: m.Hardware })))
+const India = lazy(() => import('./components/India').then((m) => ({ default: m.India })))
 
 interface Route {
   page: string
@@ -50,7 +51,8 @@ const TITLES: Record<string, { title: string; sub: string }> = {
   dashboard: { title: 'Dashboard', sub: 'Your next best move' },
   galaxy: { title: 'Quantum Galaxy', sub: 'Spatial knowledge map' },
   paths: { title: 'Learning paths', sub: 'Eight routes to quantum fluency' },
-  hardware: { title: 'Hardware & India', sub: 'From circuit diagram to real machine' },
+  india: { title: "India's Quantum Future", sub: 'NQM, RRI and the machines being built' },
+  hardware: { title: 'Hardware', sub: 'The physical stack behind the circuit' },
   lab: { title: 'Workbench', sub: 'Design, simulate, export' },
   lesson: { title: 'Virtual Lab', sub: 'Seven-stage guided lesson' },
   challenges: { title: 'Challenges', sub: 'Auto-graded circuit problems' },
@@ -93,7 +95,8 @@ export default function App() {
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { id: 'galaxy', label: 'Galaxy', icon: <Orbit size={16} /> },
     { id: 'paths', label: 'Paths', icon: <BookOpen size={16} /> },
-    { id: 'hardware', label: 'Hardware & India', icon: <Cpu size={16} /> },
+    { id: 'india', label: 'India', icon: <Sparkles size={16} /> },
+    { id: 'hardware', label: 'Hardware', icon: <Cpu size={16} /> },
     { id: 'lab', label: 'Workbench', icon: <Atom size={16} /> },
     { id: 'challenges', label: 'Challenges', icon: <Gamepad2 size={16} /> },
     { id: 'progress', label: 'Progress & data', icon: <Trophy size={16} /> },
@@ -210,7 +213,8 @@ export default function App() {
               {route.page === 'dashboard' && <Dashboard onOpenTopic={openTopic} onNavigate={go} />}
               {route.page === 'galaxy' && <Galaxy onOpen={openTopic} />}
               {route.page === 'paths' && <Paths onOpenTopic={openTopic} />}
-              {route.page === 'hardware' && <Hardware onNavigate={go} />}
+              {route.page === 'india' && <India onNavigate={go} />}
+              {route.page === 'hardware' && <Hardware />}
               {route.page === 'lesson' && route.param && (
                 <LessonView key={route.param} topicId={route.param} onOpenTopic={openTopic} onBack={() => go('/paths')} />
               )}
