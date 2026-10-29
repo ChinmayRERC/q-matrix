@@ -2403,7 +2403,7 @@ code, pre, kbd { font-family: var(--font-mono); }
   .hd-future { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1180px) {
   .hd-hero { grid-template-columns: 1fr; }
   .hd-atomlab { max-width: 560px; }
   .hd-anatomy { grid-template-columns: 1fr; }
