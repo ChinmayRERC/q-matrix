@@ -116,12 +116,14 @@ The approach emphasizes practical experimentation, visual understanding, and per
 |---|---|
 | **Learn** | 176 topics across 20 domains, 8 learning paths, prerequisite validation, and a seven-stage Virtual Lab: Aim → Theory → Pretest → Procedure → Simulation → Posttest → References |
 | **Build** | 19 gate types, drag/touch/keyboard placement, mid-circuit measurement, classical feed-forward, noise presets, hardware device profiles, OpenQASM 2.0 round-trip, and Qiskit/Cirq/PennyLane export |
-| **Simulate** | TypeScript statevector and density-matrix engines, independent FastAPI/NumPy oracle, ideal vs noisy runs, device-derived noise, SWAP routing and timing estimates, measurement collapse, and cross-check results |
+| **Simulate** | TypeScript statevector and density-matrix engines, independent FastAPI/NumPy oracle that also checks noisy runs, ideal vs noisy comparison, device-derived noise, SWAP routing and timing estimates, measurement collapse, and cross-check results |
 | **Visualize** | Amplitudes, probabilities, histograms, Bloch spheres, Q-sphere, circuit diagrams, gate-by-gate state replay, and a 3D Quantum Galaxy knowledge map with a 2D SVG fallback |
-| **Hardware** | Quantum Hardware Department: an interactive rubidium atom, six scroll-linked isometric cutaways (neutral atom, superconducting, trapped ion, photonic, diamond NV, silicon spin) with a plate/photo toggle and licensed reference photographs ([credits](./docs/CREDITS.md)), a six-platform comparison, and a searchable catalogue of 87 real machines, control electronics, cryostats, lasers, detectors and actuators |
+| **Hardware** | Optional IBM Quantum execution behind an environment flag (submit, poll, counts), plus the Quantum Hardware Department: an interactive rubidium atom, six scroll-linked isometric cutaways (neutral atom, superconducting, trapped ion, photonic, diamond NV, silicon spin) with a plate/photo toggle and licensed reference photographs ([credits](./docs/CREDITS.md)), a six-platform comparison, and a searchable catalogue of 87 real machines, control electronics, cryostats, lasers, detectors and actuators |
 | **Practice** | 13 verified circuit templates, 11 auto-graded challenges, a three-level Qubit Lab puzzle game, 12 badges, XP/levels, daily streaks, and daily/weekly quests |
-| **Teach** | Bayesian Knowledge Tracing mastery, Hake learning-gain tracking, per-topic analytics, and CSV/JSON educator export |
-| **AI** | NVIDIA Nemotron tutor and study planner, optional Anthropic fallback, deterministic offline tutor, and server-side-only API keys |
+| **Teach** | Bayesian Knowledge Tracing mastery, Hake learning-gain tracking, per-topic analytics, CSV/JSON educator export, optional class codes with server-side progress sync, and a live educator roster |
+| **AI** | NVIDIA Nemotron tutor and study planner, optional Anthropic fallback, deterministic offline tutor, a probability-claim groundedness check with a 50-question eval set, and server-side-only API keys |
+
+Teachers: [docs/TEACHER_GUIDE.md](./docs/TEACHER_GUIDE.md) has a 45-minute lab plan, per-path misconceptions and a troubleshooting list.
 
 ---
 
@@ -292,6 +294,11 @@ vtu-hc-q-matrix/
 ├── render.yaml
 ├── .env.example
 │
+├── evals/
+│   └── tutor_questions.json
+├── scripts/
+│   ├── eval_tutor.py
+│   └── verify-templates.py
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
@@ -327,6 +334,9 @@ vtu-hc-q-matrix/
 ├── apps/
 │   └── api/
 │       ├── main.py
+│       ├── classroom.py
+│       ├── grounding.py
+│       ├── ibm.py
 │       ├── requirements.txt
 │       └── test_main.py
 │
@@ -429,18 +439,27 @@ npm run api
 | `NVIDIA_BASE_URL` | No | Defaults to `https://integrate.api.nvidia.com/v1`. |
 | `ANTHROPIC_API_KEY` | No | Optional fallback provider. |
 | `ANTHROPIC_MODEL` | No | Defaults to `claude-sonnet-4-5`. |
+| `QMATRIX_DB` | No | SQLite file for class/roster data. Defaults to `data/qmatrix.db`; point it at a mounted disk on Render. |
+| `IBM_QUANTUM_TOKEN` | No | Enables real-hardware runs. Without it the hardware endpoints are hidden and answer 503. |
+| `IBM_QUANTUM_INSTANCE` | No | Instance CRN, required by some IBM accounts. |
+| `IBM_QUANTUM_BACKEND` | No | Backend name; defaults to the least busy operational device. |
 
 Without any key, the API returns the deterministic fallback, so demos never break. Never commit a real `.env` or expose keys in the browser.
 
 ### 6. Run Tests
 
 ```bash
-npx vitest run                       # 120 frontend tests
+npx vitest run                       # 140 frontend tests + 8 optional SDK round-trips
 npx tsc -b                           # TypeScript type-check
 npm run build                        # production build
-python3 -m pytest apps/api -q        # 12 API tests
+python3 -m pytest apps/api -q        # 39 API tests
+python3 scripts/eval_tutor.py        # 50 grounded tutor questions
 python3 scripts/verify-templates.py  # 28/28 NumPy oracle checks
 ```
+
+The Cirq and PennyLane round-trip tests run the generated programs against the
+real SDKs and compare them with the browser engine. They skip, visibly, when
+those packages are not installed; install either one to exercise them.
 
 Qiskit 1.0+ reference suite:
 
@@ -452,7 +471,7 @@ python -m pytest qiskit_ref -q       # 15 tests
 python -m qiskit_ref.algorithms      # run the algorithm demo
 ```
 
-Total: **170 automated checks** (140 + 15 + 15), plus **28/28** NumPy oracle checks. CI runs the web and API suites on every push and pull request.
+Total: **209 automated checks** that need no quantum SDK (140 web + 39 API + 15 + 15), plus **8** optional Cirq/PennyLane round-trips and the **50-question** tutor eval. CI runs the web and API suites on every push and pull request.
 
 ### 7. Build and Deploy
 
@@ -484,9 +503,14 @@ If the Pages build has no `VITE_API_URL`, the tutor still answers from its deter
 |---|---|
 | `GET /api/health` | Engine, provider, model and feature status |
 | `GET /api/experiments` | Lesson experiment catalogue |
-| `POST /api/simulate` | NumPy statevector simulation; returns `agrees` / `max_abs_diff` when expected probabilities are supplied |
-| `POST /api/ai/tutor` | Socratic tutor with NVIDIA → Anthropic → local fallback |
+| `POST /api/simulate` | NumPy statevector, or density-matrix when a `noise` spec is supplied; returns `agrees` / `max_abs_diff` when expected probabilities are supplied |
+| `POST /api/ai/tutor` | Socratic tutor with NVIDIA → Anthropic → local fallback; ungrounded probability claims are replaced by the deterministic answer |
 | `POST /api/ai/plan` | Agentic study plan for the next session |
+| `GET /api/metrics` | Request, error, latency and AI-source counters (no learner content) |
+| `POST /api/class`, `POST /api/class/join` | Create a class (teacher PIN) or join with the class code |
+| `PUT /api/learner/state` | Upload the signed-in learner's compact progress snapshot |
+| `POST /api/educator/login`, `GET /api/educator/class` | Teacher session and class roster with mastery and gain |
+| `GET /api/hardware/status`, `POST /api/hardware/run`, `GET /api/hardware/jobs/{id}` | Real IBM hardware submission and polling, only when configured |
 
 The two AI routes are rate limited per client IP (`AI_HOURLY_PER_IP`, default 20 per hour) and globally per day (`AI_DAILY_CALLS`, default 500). Over the limit returns HTTP 429 with `Retry-After`; the offline tutor is never limited because it costs nothing.
 

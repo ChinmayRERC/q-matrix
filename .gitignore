@@ -6,6 +6,7 @@ dist/
 __pycache__/
 .pytest_cache/
 *.pyc
+data/
 .DS_Store
 tsconfig.app.tsbuildinfo
 vtu-hc-q-matrix/
