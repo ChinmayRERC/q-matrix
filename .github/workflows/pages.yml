@@ -28,6 +28,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Unit tests
+        run: npm test
       - name: Build static site
         env:
           VITE_BASE: /q-matrix/

@@ -3,6 +3,7 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
+import apps.api.main as api
 from apps.api.main import app
 
 client = TestClient(app)
@@ -180,3 +181,56 @@ def test_plan_is_grounded_and_actionable(monkeypatch):
     assert body["focus_topic"] == "QI-02"
     assert {step["action"] for step in body["steps"]} == {"lesson", "challenge"}
     assert "Ada" in body["headline"]
+
+
+# --- AI cost guard ---------------------------------------------------------
+
+
+def _tutor_post(ip: str | None = None):
+    headers = {"x-forwarded-for": ip} if ip else {}
+    return client.post(
+        "/api/ai/tutor",
+        json={"question": "what is a qubit?", "mode": "explain"},
+        headers=headers,
+    )
+
+
+def test_ai_rate_limit_is_per_ip(monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(api, "_call_nvidia", lambda key, payload: "stub answer")
+    monkeypatch.setattr(api, "AI_HOURLY_PER_IP", 2)
+    monkeypatch.setattr(api, "_ai_hits", {})
+    monkeypatch.setattr(api, "_ai_day", {"day": "", "count": 0})
+
+    assert _tutor_post("203.0.113.9").status_code == 200
+    assert _tutor_post("203.0.113.9").status_code == 200
+    blocked = _tutor_post("203.0.113.9")
+    assert blocked.status_code == 429
+    assert int(blocked.headers["retry-after"]) > 0
+    # A different learner behind the same proxy is unaffected.
+    assert _tutor_post("203.0.113.10").status_code == 200
+
+
+def test_ai_daily_cap_stops_every_ip(monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
+    monkeypatch.setattr(api, "_call_nvidia", lambda key, payload: "stub answer")
+    monkeypatch.setattr(api, "AI_HOURLY_PER_IP", 50)
+    monkeypatch.setattr(api, "AI_DAILY_CALLS", 1)
+    monkeypatch.setattr(api, "_ai_hits", {})
+    monkeypatch.setattr(api, "_ai_day", {"day": "", "count": 0})
+
+    assert _tutor_post("198.51.100.1").status_code == 200
+    assert _tutor_post("198.51.100.2").status_code == 429
+
+
+def test_offline_tutor_is_never_rate_limited(monkeypatch):
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(api, "AI_HOURLY_PER_IP", 1)
+    monkeypatch.setattr(api, "AI_DAILY_CALLS", 1)
+    monkeypatch.setattr(api, "_ai_hits", {})
+    monkeypatch.setattr(api, "_ai_day", {"day": "", "count": 0})
+
+    for _ in range(4):
+        assert _tutor_post("192.0.2.5").status_code == 200

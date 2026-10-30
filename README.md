@@ -118,8 +118,8 @@ The approach emphasizes practical experimentation, visual understanding, and per
 | **Build** | 19 gate types, drag/touch/keyboard placement, mid-circuit measurement, classical feed-forward, noise presets, hardware device profiles, OpenQASM 2.0 round-trip, and Qiskit/Cirq/PennyLane export |
 | **Simulate** | TypeScript statevector and density-matrix engines, independent FastAPI/NumPy oracle, ideal vs noisy runs, device-derived noise, SWAP routing and timing estimates, measurement collapse, and cross-check results |
 | **Visualize** | Amplitudes, probabilities, histograms, Bloch spheres, Q-sphere, circuit diagrams, gate-by-gate state replay, and a 3D Quantum Galaxy knowledge map with a 2D SVG fallback |
-| **Hardware** | Quantum Hardware Department: an interactive rubidium atom, six scroll-linked isometric cutaways (neutral atom, superconducting, trapped ion, photonic, diamond NV, silicon spin) with a plate/photo toggle and licensed reference photographs, a six-platform comparison, and a searchable catalogue of 87 real machines, control electronics, cryostats, lasers, detectors and actuators |
-| **Practice** | 13 verified circuit templates, 11 auto-graded challenges, 12 badges, XP/levels, daily streaks, and daily/weekly quests |
+| **Hardware** | Quantum Hardware Department: an interactive rubidium atom, six scroll-linked isometric cutaways (neutral atom, superconducting, trapped ion, photonic, diamond NV, silicon spin) with a plate/photo toggle and licensed reference photographs ([credits](./docs/CREDITS.md)), a six-platform comparison, and a searchable catalogue of 87 real machines, control electronics, cryostats, lasers, detectors and actuators |
+| **Practice** | 13 verified circuit templates, 11 auto-graded challenges, a three-level Qubit Lab puzzle game, 12 badges, XP/levels, daily streaks, and daily/weekly quests |
 | **Teach** | Bayesian Knowledge Tracing mastery, Hake learning-gain tracking, per-topic analytics, and CSV/JSON educator export |
 | **AI** | NVIDIA Nemotron tutor and study planner, optional Anthropic fallback, deterministic offline tutor, and server-side-only API keys |
 
@@ -240,7 +240,7 @@ Each topic has a Bayesian Knowledge Tracing state (`pInit`, `pTransit`, `pSlip`,
 ### Verification
 
 ```text
-120 Vitest tests  +  12 API tests  +  15 Qiskit tests  =  147 automated checks
+140 Vitest tests  +  15 API tests  +  15 Qiskit tests  =  170 automated checks
 28/28 NumPy oracle checks
 QFT vs Qiskit QFTGate: max error 1.2e-12
 Browser vs NumPy deterministic templates: ≤ 1.3e-15 max amplitude difference
@@ -452,7 +452,7 @@ python -m pytest qiskit_ref -q       # 15 tests
 python -m qiskit_ref.algorithms      # run the algorithm demo
 ```
 
-Total: **147 automated checks** (120 + 12 + 15), plus **28/28** NumPy oracle checks.
+Total: **170 automated checks** (140 + 15 + 15), plus **28/28** NumPy oracle checks. CI runs the web and API suites on every push and pull request.
 
 ### 7. Build and Deploy
 
@@ -466,6 +466,18 @@ The included [`Dockerfile`](./Dockerfile) builds the React SPA, installs the Fas
 
 For the static GitHub Pages demo, [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) builds with `VITE_BASE=/q-matrix/` and deploys `dist` on every push to `main`. Set the repository variable `VITE_API_URL` to `https://q-matrix.onrender.com` to connect the Pages demo to the Render API.
 
+**What runs where:**
+
+| Capability | Render (`q-matrix.onrender.com`) | GitHub Pages (`chinmayrerc.github.io/q-matrix`) |
+|---|---|---|
+| All pages, lessons, workbench, challenges, games | Yes | Yes |
+| Browser statevector / density-matrix simulation | Yes | Yes |
+| AI tutor (Chinnu) and study planner | Yes | Yes, via `VITE_API_URL` pointing at Render |
+| NumPy cross-check (`/api/simulate`) | Yes | Yes, via `VITE_API_URL` |
+| Cold-start delay | 30 s or more after inactivity on the free plan | None (static CDN) |
+
+If the Pages build has no `VITE_API_URL`, the tutor still answers from its deterministic offline fallback and the cross-check dialog stays unavailable.
+
 ### API endpoints
 
 | Endpoint | Description |
@@ -475,6 +487,8 @@ For the static GitHub Pages demo, [`.github/workflows/pages.yml`](./.github/work
 | `POST /api/simulate` | NumPy statevector simulation; returns `agrees` / `max_abs_diff` when expected probabilities are supplied |
 | `POST /api/ai/tutor` | Socratic tutor with NVIDIA → Anthropic → local fallback |
 | `POST /api/ai/plan` | Agentic study plan for the next session |
+
+The two AI routes are rate limited per client IP (`AI_HOURLY_PER_IP`, default 20 per hour) and globally per day (`AI_DAILY_CALLS`, default 500). Over the limit returns HTTP 429 with `Retry-After`; the offline tutor is never limited because it costs nothing.
 
 ---
 
@@ -569,7 +583,7 @@ git pull --rebase
 - [x] Project runs from a clean clone
 - [x] Latest code committed to `main`
 - [x] Live demo and 10-slide submission deck included
-- [x] 24-second demo video published (every frame is the real product, captured from the live deployment)
+- [x] Demo videos published: the 24-second cut ([`docs/q-matrix-demo-24s.mp4`](./docs/q-matrix-demo-24s.mp4)) and the 1 min 48 s walkthrough ([`docs/q-matrix-demo.mp4`](./docs/q-matrix-demo.mp4)). Every frame is the real product, captured from the live deployment.
 - [ ] Short project summary submitted on the hackathon portal
 
 ---
@@ -589,7 +603,8 @@ git pull --rebase
 | Google Cirq | <https://quantumai.google/cirq> |
 | GitHub Documentation | <https://docs.github.com/> |
 | Live demo | <https://chinmayrerc.github.io/q-matrix/> |
-| Demo video (2 min) | [watch/download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · in-repo [`docs/q-matrix-demo.mp4`](./docs/q-matrix-demo.mp4) · poster [`docs/q-matrix-demo-poster.jpg`](./docs/q-matrix-demo-poster.jpg) |
+| Demo video (1 min 48 s) | [watch/download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/q-matrix-demo.mp4) · in-repo [`docs/q-matrix-demo.mp4`](./docs/q-matrix-demo.mp4) · poster [`docs/q-matrix-demo-poster.jpg`](./docs/q-matrix-demo-poster.jpg) |
+| Demo video (24 s) | in-repo [`docs/q-matrix-demo-24s.mp4`](./docs/q-matrix-demo-24s.mp4) |
 | API health | <https://q-matrix.onrender.com/api/health> |
 | Submission deck | [`submission/VTU-QFF-HC-0024.pptx`](./submission/VTU-QFF-HC-0024.pptx) · [download](https://github.com/vtu-qiskit-fall-fest-2026/vtu-hc-q-matrix/releases/download/v1.1/VTU-QFF-HC-0024.pptx) |
 

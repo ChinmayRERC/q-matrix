@@ -15,11 +15,13 @@ from __future__ import annotations
 import math
 import os
 import random
+import threading
+import time
 from typing import Any, Literal
 
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -67,6 +69,56 @@ NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com
 NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")
 MAX_GATES = 512
 MAX_QUBITS = 10
+
+# Cost guard for the paid AI routes. Counts live in this process, so a restart
+# or a second instance resets them; that is enough to stop a single scraper,
+# not a distributed one.
+# shortcut: in-memory counters, move to Redis if the API scales past one instance.
+AI_HOURLY_PER_IP = int(os.getenv("AI_HOURLY_PER_IP", "20"))
+AI_DAILY_CALLS = int(os.getenv("AI_DAILY_CALLS", "500"))
+
+_ai_hits: dict[str, list[float]] = {}
+_ai_day = {"day": "", "count": 0}
+_ai_lock = threading.Lock()
+
+
+def _client_ip(http: Request) -> str:
+    """Real client IP behind Render's proxy, falling back to the socket peer."""
+    forwarded = http.headers.get("x-forwarded-for", "")
+    return forwarded.split(",")[0].strip() or (http.client.host if http.client else "unknown")
+
+
+def _charge_ai_budget(http: Request) -> None:
+    """Count one paid AI call, or raise 429 once an IP or the day is over budget."""
+    if _ai_provider()[0] == "local-fallback":
+        return  # the deterministic tutor costs nothing, so never block it
+    now = time.time()
+    today = time.strftime("%Y-%m-%d", time.gmtime(now))
+    ip = _client_ip(http)
+    with _ai_lock:
+        if _ai_day["day"] != today:
+            _ai_day["day"] = today
+            _ai_day["count"] = 0
+        if _ai_day["count"] >= AI_DAILY_CALLS:
+            raise HTTPException(
+                429,
+                "The daily AI budget is spent. Chinnu's offline tutor still works.",
+                headers={"Retry-After": "3600"},
+            )
+        window = [t for t in _ai_hits.get(ip, []) if now - t < 3600]
+        if len(window) >= AI_HOURLY_PER_IP:
+            retry = max(1, int(3600 - (now - window[0])) + 1)
+            raise HTTPException(
+                429,
+                f"Rate limit: {AI_HOURLY_PER_IP} AI requests per hour.",
+                headers={"Retry-After": str(retry)},
+            )
+        window.append(now)
+        _ai_hits[ip] = window
+        _ai_day["count"] += 1
+        if len(_ai_hits) > 5000:  # drop IPs with no live hits
+            for key in [k for k, v in _ai_hits.items() if not v]:
+                del _ai_hits[key]
 
 GateKind = Literal[
     "H", "X", "Y", "Z", "S", "T", "Sdg", "Tdg",
@@ -403,25 +455,26 @@ def simulate(request: SimulateRequest) -> dict[str, Any]:
 
 
 @app.post("/api/ai/tutor")
-def tutor(request: TutorRequest) -> dict[str, Any]:
+def tutor(http: Request, payload: TutorRequest) -> dict[str, Any]:
+    _charge_ai_budget(http)
     provider, _model = _ai_provider()
     if provider == "nvidia":
         try:
-            text = _call_nvidia(os.environ["NVIDIA_API_KEY"], request)
-            return {"text": text, "source": "nvidia", "suggestions": _suggestions(request)}
+            text = _call_nvidia(os.environ["NVIDIA_API_KEY"], payload)
+            return {"text": text, "source": "nvidia", "suggestions": _suggestions(payload)}
         except Exception as exc:  # pragma: no cover - network dependent
-            fallback = _local_tutor(request)
+            fallback = _local_tutor(payload)
             fallback["degraded_reason"] = f"{type(exc).__name__}"
             return fallback
     if provider == "claude":
         try:
-            text = _call_claude(os.environ["ANTHROPIC_API_KEY"], request)
-            return {"text": text, "source": "claude", "suggestions": _suggestions(request)}
+            text = _call_claude(os.environ["ANTHROPIC_API_KEY"], payload)
+            return {"text": text, "source": "claude", "suggestions": _suggestions(payload)}
         except Exception as exc:  # pragma: no cover - network dependent
-            fallback = _local_tutor(request)
+            fallback = _local_tutor(payload)
             fallback["degraded_reason"] = f"{type(exc).__name__}"
             return fallback
-    return _local_tutor(request)
+    return _local_tutor(payload)
 
 
 # ---------------------------------------------------------------------------
@@ -668,14 +721,15 @@ def _plan_context(request: PlanRequest, plan: dict[str, Any]) -> str:
 
 
 @app.post("/api/ai/plan")
-def plan(request: PlanRequest) -> dict[str, Any]:
+def plan(http: Request, payload: PlanRequest) -> dict[str, Any]:
     """Agentic next-step planner: deterministic BKT-grounded plan + model note.
 
     The plan itself is computed from the learner state, so it is always safe and
     actionable. The LLM only rewrites the coaching note; if it is unavailable the
     deterministic note ships unchanged.
     """
-    result = _local_plan(request)
+    _charge_ai_budget(http)
+    result = _local_plan(payload)
     provider, _model = _ai_provider()
     if provider == "nvidia":
         try:
@@ -683,7 +737,7 @@ def plan(request: PlanRequest) -> dict[str, Any]:
                 os.environ["NVIDIA_API_KEY"],
                 [
                     {"role": "system", "content": PLAN_SYSTEM},
-                    {"role": "user", "content": _plan_context(request, result) + "\n\nWrite the coaching note now."},
+                    {"role": "user", "content": _plan_context(payload, result) + "\n\nWrite the coaching note now."},
                 ],
                 max_tokens=140,
                 temperature=0.5,
