@@ -109,8 +109,11 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
           {paths.map((path) => {
             const on = path.id === active?.id
             return (
-              <button
+              <div
                 key={path.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={on}
                 className={`topic-card ${on ? 'complete' : ''}`}
                 style={{
                   padding: 13,
@@ -118,6 +121,12 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
                   background: on ? 'linear-gradient(160deg, rgba(155,124,255,.14), rgba(255,255,255,.02))' : undefined,
                 }}
                 onClick={() => setSelected(path.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelected(path.id)
+                  }
+                }}
               >
                 <span className="row gap-8" style={{ display: 'flex' }}>
                   <Route size={14} color={on ? 'var(--violet)' : 'var(--dim)'} />
@@ -130,7 +139,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
                 <span style={{ display: 'block' }}>
                   <Meter value={path.progress} tone={path.progress >= 1 ? 'green' : undefined} className="thin" />
                 </span>
-              </button>
+              </div>
             )
           })}
         </div>

@@ -2606,3 +2606,9 @@ code, pre, kbd { font-family: var(--font-mono); }
 @media (max-width: 860px) {
   .paths-layout { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Touch-friendly controls and readable metadata on phones. */
+@media (max-width: 560px) {
+  .tiny { font-size: 12px; }
+  .page .btn.primary { min-height: 44px; }
+}
