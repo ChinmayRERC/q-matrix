@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -234,3 +236,79 @@ def test_offline_tutor_is_never_rate_limited(monkeypatch):
 
     for _ in range(4):
         assert _tutor_post("192.0.2.5").status_code == 200
+
+
+# --- density engine and noisy cross-check ---------------------------------
+
+
+def one_qubit(kind="X", qubits=(0,)):
+    return {
+        "circuit": {
+            "numQubits": 2,
+            "gates": [{"kind": kind, "qubits": list(qubits), "params": [], "column": 0}],
+        },
+        "shots": 4,
+        "seed": 1,
+    }
+
+
+def test_ideal_density_matches_statevector():
+    body = bell_circuit(shots=10)
+    body["noise"] = {"depolarizing": 0.0, "amplitudeDamping": 0.0, "readoutError": 0.0}
+    ideal = client.post("/api/simulate", json=body).json()
+    assert ideal["backend"] == "numpy-statevector"
+    body["noise"]["depolarizing"] = 1e-12  # forces the density path
+    noisy = client.post("/api/simulate", json=body).json()
+    assert noisy["backend"] == "numpy-density"
+    for a, b in zip(ideal["probabilities"], noisy["probabilities"]):
+        assert a == pytest.approx(b, abs=1e-9)
+
+
+def test_depolarizing_matches_the_analytic_channel():
+    body = one_qubit()
+    body["noise"] = {"depolarizing": 0.3, "amplitudeDamping": 0.0, "readoutError": 0.0}
+    p = client.post("/api/simulate", json=body).json()["probabilities"]
+    # (1-p)|1><1| + p/3 (X+Y+Z) leaves 2p/3 on |0> and 1-2p/3 on |1>.
+    assert p[0] == pytest.approx(0.2, abs=1e-9)  # index 0 = q0 reads 0
+    assert p[1] == pytest.approx(0.8, abs=1e-9)
+
+
+def test_amplitude_damping_matches_the_analytic_channel():
+    body = one_qubit()
+    body["noise"] = {"depolarizing": 0.0, "amplitudeDamping": 0.25, "readoutError": 0.0}
+    p = client.post("/api/simulate", json=body).json()["probabilities"]
+    assert p[0] == pytest.approx(0.25, abs=1e-9)
+    assert p[1] == pytest.approx(0.75, abs=1e-9)
+
+
+def test_readout_error_flips_reported_bits():
+    body = one_qubit()
+    body["shots"] = 4000
+    body["noise"] = {"depolarizing": 0.0, "amplitudeDamping": 0.0, "readoutError": 0.5}
+    counts = client.post("/api/simulate", json=body).json()["counts"]
+    zeros = counts.get("00", 0) + counts.get("10", 0)
+    assert 1600 < zeros < 2400  # half of 4000, +-10%
+
+
+def test_noisy_cross_check_is_capped_at_six_qubits():
+    body = {
+        "circuit": {"numQubits": 7, "gates": [{"kind": "H", "qubits": [0], "params": [], "column": 0}]},
+        "noise": {"depolarizing": 0.01},
+    }
+    assert client.post("/api/simulate", json=body).status_code == 422
+
+
+def test_density_state_is_a_valid_quantum_state():
+    from apps.api.main import NoiseSpec, simulate_density
+
+    circuit = api.Circuit(
+        numQubits=2,
+        gates=[
+            api.Gate(kind="H", qubits=[0], params=[], column=0),
+            api.Gate(kind="CNOT", qubits=[0, 1], params=[], column=1),
+        ],
+    )
+    rho = simulate_density(circuit, NoiseSpec(depolarizing=0.05, amplitudeDamping=0.02))
+    assert np.allclose(rho, rho.conj().T, atol=1e-12)  # Hermitian
+    assert np.isclose(np.trace(rho).real, 1.0, atol=1e-9)  # trace 1
+    assert np.all(np.linalg.eigvalsh(rho) > -1e-12)  # positive semidefinite

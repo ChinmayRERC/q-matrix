@@ -27,6 +27,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from apps.api.classroom import learner_count
+from apps.api.classroom import router as classroom_router
+from apps.api.ibm import router as hardware_router
+from apps.api.grounding import check as check_grounding
+
 try:  # optional at import time so the API boots without network deps
     import httpx
 except Exception:  # pragma: no cover
@@ -39,6 +44,42 @@ except Exception:  # pragma: no cover
 
 
 app = FastAPI(title="Q-matrix API", version="1.1.0")
+
+_metrics: dict[str, Any] = {
+    "requests": 0,
+    "errors": 0,
+    "routes": {},
+    "ai": {"nvidia": 0, "claude": 0, "local": 0, "local-grounded": 0},
+    "latencyMsSum": 0.0,
+    "latencyMsMax": 0.0,
+    "startedAt": time.time(),
+}
+_metrics_lock = threading.Lock()
+
+
+def _count_ai(source: str) -> None:
+    with _metrics_lock:
+        _metrics["ai"][source] = _metrics["ai"].get(source, 0) + 1
+
+
+@app.middleware("http")
+async def _record_request(request: Request, call_next):
+    started = time.perf_counter()
+    response = await call_next(request)
+    elapsed = (time.perf_counter() - started) * 1000
+    key = f"{request.method} {request.url.path}"
+    with _metrics_lock:
+        _metrics["requests"] += 1
+        _metrics["routes"][key] = _metrics["routes"].get(key, 0) + 1
+        _metrics["latencyMsSum"] += elapsed
+        _metrics["latencyMsMax"] = max(_metrics["latencyMsMax"], elapsed)
+        if response.status_code >= 500:
+            _metrics["errors"] += 1
+    return response
+
+
+app.include_router(classroom_router)
+app.include_router(hardware_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -156,11 +197,20 @@ class Circuit(BaseModel):
     gates: list[Gate] = Field(default_factory=list, max_length=MAX_GATES)
 
 
+class NoiseSpec(BaseModel):
+    """The same toy channel the browser applies, so the two engines stay comparable."""
+
+    depolarizing: float = Field(default=0.0, ge=0.0, le=0.5)
+    amplitudeDamping: float = Field(default=0.0, ge=0.0, le=0.5)
+    readoutError: float = Field(default=0.0, ge=0.0, le=0.5)
+
+
 class SimulateRequest(BaseModel):
     circuit: Circuit
     shots: int = Field(default=1024, ge=1, le=200_000)
     seed: int | None = None
     expected_probabilities: list[float] | None = None
+    noise: NoiseSpec | None = None
 
 
 class TutorMessage(BaseModel):
@@ -267,67 +317,68 @@ def _apply_single(state: "np.ndarray", q: int, mat: "np.ndarray", n: int) -> "np
     return out.reshape(-1)
 
 
+def _apply_gate(state: "np.ndarray", gate: Gate, n: int) -> "np.ndarray":
+    """Apply one gate to a state vector.
+
+    The density engine and the statevector engine both call this, so the two
+    cannot drift apart. Measurements and barriers are skipped: the cross-check
+    endpoint grades the unitary part of the circuit.
+    """
+    for q in gate.qubits:
+        if q < 0 or q >= n:
+            raise HTTPException(422, f"Gate {gate.kind} references qubit {q} outside the register")
+    if gate.condition is not None:
+        raise HTTPException(
+            422,
+            "Conditional gates need shot-by-shot collapse; the cross-check endpoint only "
+            "supports deterministic circuits. Run those in the browser engine.",
+        )
+    if gate.kind in ("M", "BARRIER", "I"):
+        return state
+    if gate.kind in ("CNOT", "CZ", "CRX", "CRY", "CRZ"):
+        if len(gate.qubits) != 2 or gate.qubits[0] == gate.qubits[1]:
+            raise HTTPException(422, f"{gate.kind} needs two distinct qubits")
+        control, target = gate.qubits
+        if gate.kind == "CNOT":
+            mat = _single("X", [])
+        elif gate.kind == "CZ":
+            mat = _single("Z", [])
+        else:
+            mat = _single(gate.kind[1:], gate.params)
+        # Apply the 2x2 block only on the control = 1 subspace.
+        return _controlled_single(state, n, control, target, mat)
+    if gate.kind == "CSWAP":
+        if len(gate.qubits) != 3:
+            raise HTTPException(422, "CSWAP needs three qubits")
+        control, a, b = gate.qubits
+        out = state.copy()
+        cm, ma, mb = 1 << control, 1 << a, 1 << b
+        for i in range(len(state)):
+            if not (i & cm):
+                continue
+            if bool(i & ma) == bool(i & mb):
+                continue
+            out[(i ^ ma) ^ mb] = state[i]
+        return out
+    if gate.kind == "CCX":
+        if len(gate.qubits) != 3:
+            raise HTTPException(422, "CCX needs three qubits")
+        return _multi_controlled(state, n, gate.qubits[:2], gate.qubits[2])
+    if gate.kind == "SWAP":
+        if len(gate.qubits) != 2:
+            raise HTTPException(422, "SWAP needs two qubits")
+        return _swap(state, n, gate.qubits[0], gate.qubits[1])
+    if len(gate.qubits) != 1:
+        raise HTTPException(422, f"{gate.kind} needs exactly one qubit")
+    return _apply_single(state, gate.qubits[0], _single(gate.kind, gate.params), n)
+
+
 def simulate_statevector(circuit: Circuit) -> "np.ndarray":
     n = circuit.numQubits
-    dim = 1 << n
-    state = np.zeros(dim, dtype=complex)
+    state = np.zeros(1 << n, dtype=complex)
     state[0] = 1 + 0j
-
     for gate in sorted(circuit.gates, key=lambda g: g.column):
-        for q in gate.qubits:
-            if q < 0 or q >= n:
-                raise HTTPException(422, f"Gate {gate.kind} references qubit {q} outside the register")
-        if gate.condition is not None:
-            raise HTTPException(
-                422,
-                "Conditional gates need shot-by-shot collapse; the cross-check endpoint only "
-                "supports deterministic circuits. Run those in the browser engine.",
-            )
-        if gate.kind in ("M", "BARRIER"):
-            continue
-        if gate.kind in ("CNOT", "CZ", "CRX", "CRY", "CRZ"):
-            if len(gate.qubits) != 2 or gate.qubits[0] == gate.qubits[1]:
-                raise HTTPException(422, f"{gate.kind} needs two distinct qubits")
-            control, target = gate.qubits
-            if gate.kind == "CNOT":
-                mat = _single("X", [])
-            elif gate.kind == "CZ":
-                mat = _single("Z", [])
-            else:
-                mat = _single(gate.kind[1:], gate.params)
-            # Apply the 2x2 block only on the control = 1 subspace.
-            state = _controlled_single(state, n, control, target, mat)
-            continue
-        if gate.kind == "CSWAP":
-            if len(gate.qubits) != 3:
-                raise HTTPException(422, "CSWAP needs three qubits")
-            control, a, b = gate.qubits
-            out = state.copy()
-            cm, ma, mb = 1 << control, 1 << a, 1 << b
-            for i in range(len(state)):
-                if not (i & cm):
-                    continue
-                if bool(i & ma) == bool(i & mb):
-                    continue
-                out[(i ^ ma) ^ mb] = state[i]
-            state = out
-            continue
-        if gate.kind == "CCX":
-            if len(gate.qubits) != 3:
-                raise HTTPException(422, "CCX needs three qubits")
-            state = _multi_controlled(state, n, gate.qubits[:2], gate.qubits[2])
-            continue
-        if gate.kind == "SWAP":
-            if len(gate.qubits) != 2:
-                raise HTTPException(422, "SWAP needs two qubits")
-            state = _swap(state, n, gate.qubits[0], gate.qubits[1])
-            continue
-        if gate.kind == "I":
-            continue
-        if len(gate.qubits) != 1:
-            raise HTTPException(422, f"{gate.kind} needs exactly one qubit")
-        state = _apply_single(state, gate.qubits[0], _single(gate.kind, gate.params), n)
-
+        state = _apply_gate(state, gate, n)
     norm = float(np.linalg.norm(state))
     if norm > 0 and abs(norm - 1) > 1e-9:
         state = state / norm
@@ -374,6 +425,76 @@ def _swap(state: "np.ndarray", n: int, a: int, b: int) -> "np.ndarray":
 
 
 # ---------------------------------------------------------------------------
+# NumPy density-matrix engine (ideal circuits plus the browser's noise presets)
+# ---------------------------------------------------------------------------
+
+# The column-wise routine is O(dim^3) per gate, so it is capped well below the
+# statevector limit. The browser workbench uses at most six qubits anyway.
+MAX_DENSITY_QUBITS = 6
+
+
+def _single_columns(rho: "np.ndarray", n: int, q: int, mat: "np.ndarray") -> "np.ndarray":
+    """Apply a 1-qubit matrix to the row index of every column of rho."""
+    t = rho.reshape((2,) * n + (rho.shape[1],))
+    axis = n - 1 - q
+    t = np.moveaxis(t, axis, 0)
+    shape = t.shape
+    out = mat @ t.reshape(2, -1)
+    return np.moveaxis(out.reshape(shape), 0, axis).reshape(rho.shape)
+
+
+def _single_density(rho: "np.ndarray", n: int, q: int, mat: "np.ndarray") -> "np.ndarray":
+    """rho -> U rho U-dagger for a 1-qubit U."""
+    # (U rho)(U rho)-dagger = U rho U-dagger because rho is Hermitian.
+    a = _single_columns(rho, n, q, mat)
+    return _single_columns(a.conj().T, n, q, mat)
+
+
+def _apply_gate_columns(rho: "np.ndarray", gate: Gate, n: int) -> "np.ndarray":
+    """Apply the gate's unitary to every column of rho (returns U @ rho)."""
+    out = np.empty_like(rho)
+    for k in range(rho.shape[1]):
+        out[:, k] = _apply_gate(rho[:, k].copy(), gate, n)
+    return out
+
+
+def simulate_density(circuit: Circuit, noise: NoiseSpec) -> "np.ndarray":
+    n = circuit.numQubits
+    if n > MAX_DENSITY_QUBITS:
+        raise HTTPException(422, f"Noisy cross-check supports up to {MAX_DENSITY_QUBITS} qubits")
+    dim = 1 << n
+    rho = np.zeros((dim, dim), dtype=complex)
+    rho[0, 0] = 1 + 0j
+    gamma = noise.amplitudeDamping
+    p = noise.depolarizing
+
+    for gate in sorted(circuit.gates, key=lambda g: g.column):
+        a = _apply_gate_columns(rho, gate, n)  # U rho
+        rho = _apply_gate_columns(a.conj().T, gate, n)  # U rho U-dagger
+        if gate.kind in ("M", "BARRIER", "I"):
+            continue
+        if p > 0:
+            for q in set(gate.qubits):
+                mixed = (1 - p) * rho
+                for pauli in ("X", "Y", "Z"):
+                    mixed = mixed + (p / 3) * _single_density(rho, n, q, _single(pauli, []))
+                rho = mixed
+        if gamma > 0:
+            k0 = np.array([[1, 0], [0, math.sqrt(1 - gamma)]], dtype=complex)
+            k1 = np.array([[0, math.sqrt(gamma)], [0, 0]], dtype=complex)
+            for q in set(gate.qubits):
+                rho = _single_density(rho, n, q, k0) + _single_density(rho, n, q, k1)
+    return rho
+
+
+def density_probabilities(rho: "np.ndarray") -> list[float]:
+    diag = np.real(np.diag(rho))
+    probs = [max(0.0, float(x)) for x in diag]
+    total = sum(probs) or 1.0
+    return [x / total for x in probs]
+
+
+# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -401,6 +522,27 @@ def health() -> dict[str, Any]:
     }
 
 
+@app.get("/api/metrics")
+def metrics() -> dict[str, Any]:
+    """Counters for latency, error rate and which AI path actually answered."""
+    with _metrics_lock:
+        snapshot = {
+            "requests": _metrics["requests"],
+            "errors": _metrics["errors"],
+            "routes": dict(_metrics["routes"]),
+            "ai": dict(_metrics["ai"]),
+            "latencyMsSum": round(_metrics["latencyMsSum"], 1),
+            "latencyMsMax": round(_metrics["latencyMsMax"], 1),
+            "uptimeSeconds": round(time.time() - _metrics["startedAt"], 1),
+        }
+    total_ai = sum(snapshot["ai"].values())
+    snapshot["fallbackRate"] = (
+        round((snapshot["ai"]["local"] + snapshot["ai"]["local-grounded"]) / total_ai, 3) if total_ai else 0.0
+    )
+    snapshot["learners"] = learner_count()
+    return snapshot
+
+
 @app.get("/api/experiments")
 def experiments() -> dict[str, Any]:
     return {
@@ -420,13 +562,26 @@ def experiments() -> dict[str, Any]:
 def simulate(request: SimulateRequest) -> dict[str, Any]:
     if np is None:
         raise HTTPException(503, "NumPy is not installed on this server")
-    state = simulate_statevector(request.circuit)
-    probabilities = [float(abs(v) ** 2) for v in state]
-    total = sum(probabilities) or 1.0
-    probabilities = [p / total for p in probabilities]
 
-    rng = random.Random(request.seed) if request.seed is not None else random.Random()
+    noise = request.noise
+    noisy = noise is not None and (
+        noise.depolarizing > 0 or noise.amplitudeDamping > 0 or noise.readoutError > 0
+    )
+
+    if noisy:
+        rho = simulate_density(request.circuit, noise)
+        probabilities = density_probabilities(rho)
+        backend = "numpy-density"
+    else:
+        state = simulate_statevector(request.circuit)
+        probabilities = [float(abs(v) ** 2) for v in state]
+        total = sum(probabilities) or 1.0
+        probabilities = [p / total for p in probabilities]
+        backend = "numpy-statevector"
+
     n = request.circuit.numQubits
+    rng = random.Random(request.seed) if request.seed is not None else random.Random()
+    readout = noise.readoutError if noise else 0.0
     counts: dict[str, int] = {}
     for _ in range(request.shots):
         r = rng.random()
@@ -437,18 +592,23 @@ def simulate(request: SimulateRequest) -> dict[str, Any]:
             if r <= acc:
                 pick = i
                 break
+        if readout > 0:  # a bit can be reported wrong even when the state is right
+            for bit in range(n):
+                if rng.random() < readout:
+                    pick ^= 1 << bit
         # Little-endian display key, matching the browser: q0 is leftmost.
         key = format(pick, f"0{n}b")[::-1]
         counts[key] = counts.get(key, 0) + 1
 
     payload: dict[str, Any] = {
-        "backend": "numpy-statevector",
+        "backend": backend,
         "shots": request.shots,
         "numQubits": n,
-        "statevector": [{"re": float(v.real), "im": float(v.imag)} for v in state],
         "probabilities": probabilities,
         "counts": counts,
     }
+    if not noisy:
+        payload["statevector"] = [{"re": float(v.real), "im": float(v.imag)} for v in state]
     if request.expected_probabilities is not None:
         if len(request.expected_probabilities) != len(probabilities):
             raise HTTPException(422, "expected_probabilities has the wrong length")
@@ -458,26 +618,41 @@ def simulate(request: SimulateRequest) -> dict[str, Any]:
     return payload
 
 
+def _grounded_reply(payload: TutorRequest, text: str, source: str) -> dict[str, Any]:
+    """Return the model answer, or the deterministic one if it invented numbers."""
+    ok, unsupported = check_grounding(text, _context_block(payload))
+    if not ok:
+        fallback = _local_tutor(payload)
+        fallback["grounded"] = False
+        fallback["unsupported_claims"] = unsupported[:5]
+        fallback["degraded_reason"] = "ungrounded_numbers"
+        _count_ai("local-grounded")
+        return fallback
+    _count_ai(source)
+    return {"text": text, "source": source, "grounded": True, "suggestions": _suggestions(payload)}
+
+
 @app.post("/api/ai/tutor")
 def tutor(http: Request, payload: TutorRequest) -> dict[str, Any]:
     _charge_ai_budget(http)
     provider, _model = _ai_provider()
     if provider == "nvidia":
         try:
-            text = _call_nvidia(os.environ["NVIDIA_API_KEY"], payload)
-            return {"text": text, "source": "nvidia", "suggestions": _suggestions(payload)}
+            return _grounded_reply(payload, _call_nvidia(os.environ["NVIDIA_API_KEY"], payload), "nvidia")
         except Exception as exc:  # pragma: no cover - network dependent
             fallback = _local_tutor(payload)
             fallback["degraded_reason"] = f"{type(exc).__name__}"
+            _count_ai("local")
             return fallback
     if provider == "claude":
         try:
-            text = _call_claude(os.environ["ANTHROPIC_API_KEY"], payload)
-            return {"text": text, "source": "claude", "suggestions": _suggestions(payload)}
+            return _grounded_reply(payload, _call_claude(os.environ["ANTHROPIC_API_KEY"], payload), "claude")
         except Exception as exc:  # pragma: no cover - network dependent
             fallback = _local_tutor(payload)
             fallback["degraded_reason"] = f"{type(exc).__name__}"
+            _count_ai("local")
             return fallback
+    _count_ai("local")
     return _local_tutor(payload)
 
 
@@ -892,7 +1067,7 @@ def _local_tutor(request: TutorRequest) -> dict[str, Any]:
         if request.state_summary:
             lines.append(f"\n**Live state:** {request.state_summary}")
 
-    return {"text": "\n".join(lines), "source": "local", "suggestions": _suggestions(request)}
+    return {"text": "\n".join(lines), "source": "local", "grounded": True, "suggestions": _suggestions(request)}
 
 
 def _suggestions(request: TutorRequest) -> list[str]:
