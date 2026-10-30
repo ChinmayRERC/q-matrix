@@ -2612,3 +2612,93 @@ code, pre, kbd { font-family: var(--font-mono); }
   .tiny { font-size: 12px; }
   .page .btn.primary { min-height: 44px; }
 }
+
+/* Qubit Lab (prototype game) ---------------------------------------------- */
+
+.qg-missions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.qg-mission {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.qg-mission.on { color: var(--text); border-color: rgba(155, 124, 255, 0.5); background: rgba(155, 124, 255, 0.14); }
+
+.qg-brief { margin: 12px 0 4px; font-size: 14px; line-height: 1.55; color: #c8cee6; }
+
+.qg-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+.qg-tool {
+  min-width: 56px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--glass-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.qg-tool.on { border-color: var(--cyan); background: rgba(98, 224, 242, 0.14); color: #d6f8ff; }
+
+.qg-board { display: grid; gap: 10px; align-items: center; max-width: 720px; }
+.qg-row { display: contents; }
+
+.qg-wire-label { font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+
+.qg-cell {
+  aspect-ratio: 1.6 / 1;
+  min-height: 56px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--line-strong);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.qg-cell:hover { border-style: solid; border-color: var(--cyan); }
+.qg-cell.filled { border-style: solid; border-color: rgba(155, 124, 255, 0.6); background: rgba(155, 124, 255, 0.18); }
+.qg-cell.filled-C, .qg-cell.filled-T { background: rgba(98, 224, 242, 0.16); border-color: rgba(98, 224, 242, 0.6); }
+
+.qg-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+.qg-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--glass);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.qg-result.win { border-color: rgba(94, 226, 168, 0.4); background: rgba(94, 226, 168, 0.07); }
+.qg-result.miss { border-color: rgba(255, 196, 107, 0.35); background: rgba(255, 196, 107, 0.06); }
+.qg-result strong { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.qg-result.win strong { color: var(--green); }
+.qg-result.miss strong { color: var(--amber); }
+
+.qg-bars { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.qg-bar { display: grid; grid-template-columns: 70px 1fr 44px; align-items: center; gap: 8px; }
+.qg-track { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.qg-track i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--violet), var(--cyan)); }
+
+@media (max-width: 560px) {
+  .qg-cell { min-height: 48px; font-size: 16px; }
+  .qg-board { grid-template-columns: 44px repeat(4, minmax(0, 1fr)) !important; gap: 6px; }
+}

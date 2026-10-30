@@ -24,6 +24,7 @@ import { levelInfo, liveStreak } from './lib/gamification'
 import { touchTodayStreak, useAppStore, type Toast } from './store/useAppStore'
 import { Dashboard } from './components/Dashboard'
 import { Ring } from './components/ui'
+import { QuantumGame } from './components/QuantumGame'
 
 // Route-level code splitting: the dashboard ships immediately, while the
 // three.js-heavy Galaxy/Workbench and the long lesson flows load on demand.
@@ -51,6 +52,7 @@ const TITLES: Record<string, { title: string; sub: string }> = {
   dashboard: { title: 'Dashboard', sub: 'Your next best move' },
   galaxy: { title: 'Quantum Galaxy', sub: 'Spatial knowledge map' },
   paths: { title: 'Learning paths', sub: 'Eight routes to quantum fluency' },
+  game: { title: 'Qubit Lab', sub: 'Learn the first ideas by playing' },
   india: { title: "India's Quantum Future", sub: 'NQM, RRI and the machines being built' },
   hardware: { title: 'Hardware', sub: 'The physical stack behind the circuit' },
   lab: { title: 'Workbench', sub: 'Design, simulate, export' },
@@ -99,6 +101,7 @@ export default function App() {
     { id: 'hardware', label: 'Hardware', icon: <Cpu size={16} /> },
     { id: 'lab', label: 'Workbench', icon: <Atom size={16} /> },
     { id: 'challenges', label: 'Challenges', icon: <Gamepad2 size={16} /> },
+    { id: 'game', label: 'Qubit Lab', icon: <Zap size={16} /> },
     { id: 'progress', label: 'Progress & data', icon: <Trophy size={16} /> },
   ]
 
@@ -220,6 +223,7 @@ export default function App() {
               )}
               {route.page === 'lab' && <Composer />}
               {route.page === 'challenges' && <Challenges onOpenTopic={openTopic} />}
+              {route.page === 'game' && <QuantumGame />}
               {route.page === 'progress' && <Progress />}
               {!TITLES[route.page] && route.page !== 'lesson' && (
                 <div className="empty">
