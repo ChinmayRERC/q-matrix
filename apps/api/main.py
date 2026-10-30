@@ -83,9 +83,13 @@ _ai_lock = threading.Lock()
 
 
 def _client_ip(http: Request) -> str:
-    """Real client IP behind Render's proxy, falling back to the socket peer."""
+    """Real client IP behind Render's proxy, falling back to the socket peer.
+
+    The last X-Forwarded-For entry is the one our edge added, so a client that
+    forges the header prefix cannot mint fresh rate-limit buckets.
+    """
     forwarded = http.headers.get("x-forwarded-for", "")
-    return forwarded.split(",")[0].strip() or (http.client.host if http.client else "unknown")
+    return forwarded.split(",")[-1].strip() or (http.client.host if http.client else "unknown")
 
 
 def _charge_ai_budget(http: Request) -> None:
