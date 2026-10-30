@@ -566,6 +566,14 @@ code, pre, kbd { font-family: var(--font-mono); }
    Circuit board
    -------------------------------------------------------------------------- */
 
+/* Workbench three-pane layout: palette | board | inspector. Collapses to one
+   column below the tablet breakpoint, where 212 + 360 px of side panes cannot
+   coexist with a usable board. */
+.workbench-layout { display: grid; grid-template-columns: 212px minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+@media (max-width: 1180px) {
+  .workbench-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
 .board-wrap {
   position: relative;
   border-radius: var(--radius-lg);
@@ -1164,8 +1172,8 @@ code, pre, kbd { font-family: var(--font-mono); }
    -------------------------------------------------------------------------- */
 
 @media (max-width: 1180px) {
-  .split { grid-template-columns: 1fr; }
-  .split.wide-left { grid-template-columns: 1fr; }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .split.wide-left { grid-template-columns: minmax(0, 1fr); }
   .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -1187,7 +1195,7 @@ code, pre, kbd { font-family: var(--font-mono); }
   .brand-sub { display: none; }
   .nav { flex-direction: row; flex: none; }
   .nav-label { display: none; }
-  .nav-item { padding: 8px 10px; font-size: 12px; }
+  .nav-item { padding: 8px 10px; font-size: 12px; min-height: 44px; min-width: 44px; justify-content: center; }
   .nav-item span { display: none; }
   .sidebar-foot { display: none; }
   .topbar { padding: 12px 16px; }
@@ -1202,6 +1210,8 @@ code, pre, kbd { font-family: var(--font-mono); }
   .palette-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hero { padding: 20px; }
   .display { font-size: 30px !important; }
+  /* Long primary CTAs wrap instead of pushing the page wider than the phone. */
+  .btn.lg { white-space: normal; max-width: 100%; text-align: left; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2702,3 +2712,13 @@ code, pre, kbd { font-family: var(--font-mono); }
   .qg-cell { min-height: 48px; font-size: 16px; }
   .qg-board { grid-template-columns: 44px repeat(4, minmax(0, 1fr)) !important; gap: 6px; }
 }
+
+/* Classroom sync (Progress → educator) ---------------------------------- */
+.qm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.qm-block { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--glass); }
+.qm-field { min-height: 38px; font-size: 13px; }
+.qm-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.qm-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.qm-table th, .qm-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.qm-table th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.qm-table tr:last-child td { border-bottom: 0; }

@@ -33,6 +33,8 @@ import {
 import { gainLabel } from '../lib/lessons'
 import { deriveStats, useAppStore } from '../store/useAppStore'
 import { BadgeGlyph, Btn, Meter, Modal, Panel, Pill, Ring, Stat, Tabs } from './ui'
+import { ClassPanel } from './ClassPanel'
+import { LOCALES, setLocale, useLocale } from '../lib/i18n'
 
 const LEVEL_TONE: Record<Level, 'green' | 'cyan' | 'amber' | 'pink'> = {
   B: 'green',
@@ -70,6 +72,7 @@ export function Progress() {
   const [tab, setTab] = useState<'mastery' | 'badges' | 'educator' | 'settings'>('mastery')
   const [query, setQuery] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
+  const locale = useLocale()
 
   const level = levelInfo(state.xp)
   const streak = liveStreak(state.streak)
@@ -434,7 +437,9 @@ export function Progress() {
       )}
 
       {tab === 'educator' && (
-        <div className="split">
+        <div className="stack gap-16">
+          <ClassPanel />
+          <div className="split">
           <Panel title="Educator export" sub="One row per topic, ready for a spreadsheet or LMS import">
             <div className="stack gap-14">
               <div className="panel sunken" style={{ padding: 14 }}>
@@ -462,8 +467,8 @@ export function Progress() {
               <div className="row gap-10 wrap">
                 <ShieldCheck size={15} color="var(--green)" />
                 <span className="tiny muted grow">
-                  All progress is stored locally in this browser (localStorage). Nothing is uploaded; the tutor only sends
-                  the current circuit context when you ask a question.
+                  Progress stays in this browser unless you join a class above. Joining uploads a snapshot of mastery,
+                  lessons and challenges for your teacher; the tutor only sends the current circuit context when you ask.
                 </span>
               </div>
             </div>
@@ -496,6 +501,7 @@ export function Progress() {
               </div>
             </Panel>
           </div>
+          </div>
         </div>
       )}
 
@@ -512,6 +518,22 @@ export function Progress() {
                   onChange={(e) => state.setName(e.target.value)}
                   placeholder="Explorer"
                 />
+              </div>
+              <div className="stack gap-6">
+                <label className="eyebrow">Language</label>
+                <div className="row gap-6 wrap">
+                  {LOCALES.map((item) => (
+                    <Btn
+                      key={item.id}
+                      size="sm"
+                      variant={locale === item.id ? 'primary' : 'ghost'}
+                      onClick={() => setLocale(item.id)}
+                    >
+                      {item.label}
+                    </Btn>
+                  ))}
+                </div>
+                <p className="tiny dim">Navigation and page titles translate; lesson text stays in English.</p>
               </div>
               <div className="stack gap-6">
                 <label className="eyebrow">Default shots</label>

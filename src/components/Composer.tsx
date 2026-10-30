@@ -64,6 +64,7 @@ import { Btn, Chip, Modal, Panel, Pill, Tabs } from './ui'
 import { CircuitBoard, GATE_MIME, MOVE_MIME } from './CircuitBoard'
 import { Histogram, StatePanel } from './Visuals'
 import { Inspector } from './Inspector'
+import { HardwareRun } from './HardwareRun'
 import { TutorPanel } from './TutorPanel'
 
 const GROUPS: Array<{ label: string; categories: GateCategory[] }> = [
@@ -155,23 +156,27 @@ export function Composer({
     forceRender((v) => v + 1)
   }
 
+  const activeNoise = useMemo(
+    () =>
+      deviceId === 'custom'
+        ? settings.noisy
+          ? {
+              depolarizing: settings.noiseLevel,
+              amplitudeDamping: settings.noiseLevel * 0.5,
+              readoutError: settings.noiseLevel * 0.6,
+            }
+          : undefined
+        : deviceNoise(deviceId),
+    [deviceId, settings.noisy, settings.noiseLevel],
+  )
+
   const sim = useMemo<SimResult | null>(() => {
     try {
-      const noise =
-        deviceId === 'custom'
-          ? settings.noisy
-            ? {
-                depolarizing: settings.noiseLevel,
-                amplitudeDamping: settings.noiseLevel * 0.5,
-                readoutError: settings.noiseLevel * 0.6,
-              }
-            : undefined
-          : deviceNoise(deviceId)
-      return simulate(circuit, { shots: settings.shots, seed, noise })
+      return simulate(circuit, { shots: settings.shots, seed, noise: activeNoise })
     } catch {
       return null
     }
-  }, [circuit, settings.shots, settings.noisy, settings.noiseLevel, deviceId, seed])
+  }, [circuit, settings.shots, seed, activeNoise])
 
   const issues = useMemo(() => validateCircuit(circuit), [circuit])
   const verdict = useMemo(() => circuitVerdict(circuit, sim ?? undefined), [circuit, sim])
@@ -253,15 +258,17 @@ export function Composer({
           },
           shots: 64,
           expected_probabilities: sim?.probabilities ?? undefined,
+          noise: activeNoise,
         }),
       })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { detail?: string }
         throw new Error(body.detail ?? `server returned ${res.status}`)
       }
-      const data = (await res.json()) as { agrees?: boolean; max_abs_diff?: number }
+      const data = (await res.json()) as { agrees?: boolean; max_abs_diff?: number; backend?: string }
       const diff = data.max_abs_diff ?? 0
-      setCrosscheck({ ok: !!data.agrees, detail: `NumPy agrees to ${diff.toExponential(2)} max abs difference.` })
+      const model = data.backend === 'numpy-density' ? 'NumPy density matrix' : 'NumPy statevector'
+      setCrosscheck({ ok: !!data.agrees, detail: `${model} agrees to ${diff.toExponential(2)} max abs difference.` })
     } catch (err) {
       setCrosscheck({ ok: false, detail: err instanceof Error ? err.message : 'The API is not reachable.' })
     } finally {
@@ -338,10 +345,7 @@ export function Composer({
     PALETTE_ORDER.filter((k) => GATE_LIBRARY[k].category === category)
 
   return (
-    <div
-      className="stack gap-16"
-      style={embedded ? undefined : { display: 'grid', gridTemplateColumns: '212px minmax(0,1fr) 360px', gap: 16, alignItems: 'start' }}
-    >
+    <div className={embedded ? 'stack gap-16' : 'workbench-layout'}>
       {/* ---------------------------------------------------------------- */}
       {/* Palette + workbench toolbar                                       */}
       {/* ---------------------------------------------------------------- */}
@@ -622,6 +626,7 @@ export function Composer({
               window.dispatchEvent(new CustomEvent('nova-ask', { detail: `${insight.title}. ${insight.detail}` }))
             }}
           />
+          <HardwareRun circuit={circuit} shots={settings.shots} />
           <TutorPanel circuit={circuit} sim={sim} />
         </div>
       )}
@@ -738,8 +743,9 @@ export function Composer({
       <Modal open={modal === 'crosscheck'} onClose={() => setModal(null)} title="Independent NumPy simulator" wide>
         <div className="stack gap-14">
           <p className="lead">
-            The browser engine is cross-checked against a second statevector implementation written in NumPy on the API
-            server. Agreement to ~1e-15 means the gate algebra, qubit ordering and global phase are all consistent.
+            The browser engine is cross-checked against a second NumPy implementation on the API server: statevector for
+            ideal runs, density matrix when a noise preset is active. Agreement to ~1e-15 means the gate algebra, qubit
+            ordering and noise channel are all consistent.
           </p>
           <div className="cols-3">
             <div className="stat">

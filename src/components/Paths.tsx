@@ -8,6 +8,7 @@ import { LEVEL_NAMES, LEARNING_PATHS, TOPICS, TOPIC_BY_ID, type Level } from '..
 import { MASTERED_THRESHOLD, decayedMastery } from '../lib/mastery'
 import { START_HERE } from '../lib/lessons'
 import { useAppStore } from '../store/useAppStore'
+import { useLocale, t } from '../lib/i18n'
 import { Btn, Meter, Panel, Pill } from './ui'
 
 const LEVEL_TONE: Record<Level, 'green' | 'cyan' | 'amber' | 'pink'> = {
@@ -22,6 +23,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
   const lessons = useAppStore((s) => s.lessons)
   const [selected, setSelected] = useState(LEARNING_PATHS[0]?.id ?? '')
   const [query, setQuery] = useState('')
+  const locale = useLocale()
 
   const mOf = (id: string) => decayedMastery(mastery[id], Date.now())
 
@@ -130,7 +132,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
               >
                 <span className="row gap-8" style={{ display: 'flex' }}>
                   <Route size={14} color={on ? 'var(--violet)' : 'var(--dim)'} />
-                  <span style={{ fontWeight: 700, fontSize: 13 }} className="grow">{path.name}</span>
+                  <span style={{ fontWeight: 700, fontSize: 13 }} className="grow">{t(`path.${path.id}`, locale, path.name)}</span>
                   <span className="tiny mono dim">{Math.round(path.progress * 100)}%</span>
                 </span>
                 <span style={{ display: 'block', fontSize: 11, color: 'var(--muted)' }}>
@@ -146,7 +148,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
 
         {active && (
           <Panel
-            title={active.name}
+            title={t(`path.${active.id}`, locale, active.name)}
             sub={`${active.total} topics · ${active.mastered} mastered · ${Math.round(active.progress * 100)}% complete`}
             actions={<Pill tone="violet">{active.started} in progress</Pill>}
           >

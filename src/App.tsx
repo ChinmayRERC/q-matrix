@@ -25,6 +25,8 @@ import { touchTodayStreak, useAppStore, type Toast } from './store/useAppStore'
 import { Dashboard } from './components/Dashboard'
 import { Ring } from './components/ui'
 import { QuantumGame } from './components/QuantumGame'
+import { API_BASE } from './lib/api'
+import { useLocale, t } from './lib/i18n'
 
 // Route-level code splitting: the dashboard ships immediately, while the
 // three.js-heavy Galaxy/Workbench and the long lesson flows load on demand.
@@ -48,18 +50,7 @@ const parseHash = (): Route => {
   return { page: segments[0] ?? 'dashboard', param: segments[1] }
 }
 
-const TITLES: Record<string, { title: string; sub: string }> = {
-  dashboard: { title: 'Dashboard', sub: 'Your next best move' },
-  galaxy: { title: 'Quantum Galaxy', sub: 'Spatial knowledge map' },
-  paths: { title: 'Learning paths', sub: 'Eight routes to quantum fluency' },
-  game: { title: 'Qubit Lab', sub: 'Learn the first ideas by playing' },
-  india: { title: "India's Quantum Future", sub: 'NQM, RRI and the machines being built' },
-  hardware: { title: 'Hardware', sub: 'The physical stack behind the circuit' },
-  lab: { title: 'Workbench', sub: 'Design, simulate, export' },
-  lesson: { title: 'Virtual Lab', sub: 'Seven-stage guided lesson' },
-  challenges: { title: 'Challenges', sub: 'Auto-graded circuit problems' },
-  progress: { title: 'Progress & data', sub: 'Mastery, badges, educator export and settings' },
-}
+const PAGES = new Set(['dashboard', 'galaxy', 'paths', 'game', 'india', 'hardware', 'lab', 'lesson', 'challenges', 'progress'])
 
 export default function App() {
   const [route, setRoute] = useState<Route>(parseHash)
@@ -67,9 +58,13 @@ export default function App() {
   const level = levelInfo(xp)
   const streak = useAppStore((s) => liveStreak(s.streak))
   const name = useAppStore((s) => s.name)
+  const locale = useLocale()
 
   useEffect(() => {
     touchTodayStreak()
+    // Wake the API while the learner reads the dashboard: the free Render tier
+    // sleeps after inactivity, and the first tutor question would otherwise wait.
+    fetch(`${API_BASE}/health`).catch(() => undefined)
     const onHash = () => {
       setRoute(parseHash())
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
@@ -87,23 +82,24 @@ export default function App() {
   const openTopic = (id: string) => go(`/lesson/${id}`)
 
   const meta = useMemo(() => {
-    if (route.page === 'lesson' && route.param) {
-      return { title: 'Virtual Lab', sub: route.param }
+    const page = PAGES.has(route.page) ? route.page : 'dashboard'
+    if (page === 'lesson' && route.param) {
+      return { title: t('page.lesson.title', locale), sub: route.param }
     }
-    return TITLES[route.page] ?? TITLES.dashboard
-  }, [route])
+    return { title: t(`page.${page}.title`, locale), sub: t(`page.${page}.sub`, locale) }
+  }, [route, locale])
 
   const nav = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
-    { id: 'galaxy', label: 'Galaxy', icon: <Orbit size={16} /> },
-    { id: 'paths', label: 'Paths', icon: <BookOpen size={16} /> },
-    { id: 'india', label: 'India', icon: <Sparkles size={16} /> },
-    { id: 'hardware', label: 'Hardware', icon: <Cpu size={16} /> },
-    { id: 'lab', label: 'Workbench', icon: <Atom size={16} /> },
-    { id: 'challenges', label: 'Challenges', icon: <Gamepad2 size={16} /> },
-    { id: 'game', label: 'Qubit Lab', icon: <Zap size={16} /> },
-    { id: 'progress', label: 'Progress & data', icon: <Trophy size={16} /> },
-  ]
+    { id: 'dashboard', icon: <LayoutDashboard size={16} /> },
+    { id: 'galaxy', icon: <Orbit size={16} /> },
+    { id: 'paths', icon: <BookOpen size={16} /> },
+    { id: 'india', icon: <Sparkles size={16} /> },
+    { id: 'hardware', icon: <Cpu size={16} /> },
+    { id: 'lab', icon: <Atom size={16} /> },
+    { id: 'challenges', icon: <Gamepad2 size={16} /> },
+    { id: 'game', icon: <Zap size={16} /> },
+    { id: 'progress', icon: <Trophy size={16} /> },
+  ].map((item) => ({ ...item, label: t(`nav.${item.id}`, locale) }))
 
   return (
     <>
@@ -225,7 +221,7 @@ export default function App() {
               {route.page === 'challenges' && <Challenges onOpenTopic={openTopic} />}
               {route.page === 'game' && <QuantumGame />}
               {route.page === 'progress' && <Progress />}
-              {!TITLES[route.page] && route.page !== 'lesson' && (
+              {!PAGES.has(route.page) && (
                 <div className="empty">
                   <div className="glyph">
                     <Sparkles size={18} />
