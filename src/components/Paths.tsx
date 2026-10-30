@@ -50,7 +50,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
       <div className="row gap-16 wrap">
         <div className="grow">
           <div className="eyebrow">Curriculum</div>
-          <h1 className="display" style={{ fontSize: 34, marginTop: 4 }}>Learning paths</h1>
+          <h2 className="display" style={{ fontSize: 34, marginTop: 4 }}>Learning paths</h2>
           <p className="lead" style={{ marginTop: 6, maxWidth: 620 }}>
             Eight routes through 176 topics — from complex numbers to error-corrected algorithms. Progress counts mastery,
             not clicks.
@@ -76,7 +76,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
               New to quantum computing? Begin with <strong>{startTopic.title}</strong> ({startTopic.id}) — one H gate, a
               50/50 histogram, and the measurement rule that explains it.
             </span>
-            <Btn size="sm" variant="primary" onClick={() => onOpenTopic(START_HERE)}>
+            <Btn variant="primary" onClick={() => onOpenTopic(START_HERE)}>
               Open the first lab <ArrowRight size={13} />
             </Btn>
           </div>
@@ -104,7 +104,7 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
         </Panel>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,300px) minmax(0,1fr)', gap: 16, alignItems: 'start' }}>
+      <div className="paths-layout">
         <div className="stack gap-8">
           {paths.map((path) => {
             const on = path.id === active?.id
@@ -119,15 +119,17 @@ export function Paths({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
                 }}
                 onClick={() => setSelected(path.id)}
               >
-                <div className="row gap-8">
+                <span className="row gap-8" style={{ display: 'flex' }}>
                   <Route size={14} color={on ? 'var(--violet)' : 'var(--dim)'} />
                   <span style={{ fontWeight: 700, fontSize: 13 }} className="grow">{path.name}</span>
                   <span className="tiny mono dim">{Math.round(path.progress * 100)}%</span>
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                </span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--muted)' }}>
                   {path.mastered}/{path.total} mastered · {path.started} started
-                </div>
-                <Meter value={path.progress} tone={path.progress >= 1 ? 'green' : undefined} className="thin" />
+                </span>
+                <span style={{ display: 'block' }}>
+                  <Meter value={path.progress} tone={path.progress >= 1 ? 'green' : undefined} className="thin" />
+                </span>
               </button>
             )
           })}

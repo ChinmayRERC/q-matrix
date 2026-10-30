@@ -2594,3 +2594,15 @@ code, pre, kbd { font-family: var(--font-mono); }
 }
 
 .hd-photo figcaption a:hover { text-decoration: underline; }
+
+/* Learning paths: route list beside the detail panel, stacked on narrow screens. */
+.paths-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .paths-layout { grid-template-columns: minmax(0, 1fr); }
+}
