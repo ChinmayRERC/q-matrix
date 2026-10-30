@@ -45,3 +45,5 @@ jobs:
       - run: pip install -r apps/api/requirements.txt
       - name: API tests
         run: python -m pytest apps/api -q
+      - name: Tutor grounding eval
+        run: python scripts/eval_tutor.py
